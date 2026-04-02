@@ -57,3 +57,30 @@ Team formed 2026-04-02. Initial setup — no code yet.
 Your work has shipped. Orchestration log written to `.squad/orchestration-log/2026-04-02T11-05-pris.md`. Parity validated with Roy's .NET implementation.
 
 **Status:** Ready for CLI phase.
+
+### CLI Implementation Complete
+
+**New modules:**
+- `python/src/aicatalog/converter.py` — marketplace-to-catalog conversion logic (TFD-005 URN pattern, media type mapping)
+- `python/src/aicatalog/cli/__init__.py` + `cli/main.py` — click-based CLI with 3 commands
+- `python/tests/test_cli.py` — 24 tests covering all commands
+
+**CLI commands:**
+- `ai-catalog convert marketplace <file> [--output]` — converts Claude marketplace.json to ai-catalog.json
+- `ai-catalog explore <url> [--filter-tag] [--filter-media-type] [--show] [--json-output]` — fetches remote catalog, displays in rich table or plain text
+- `ai-catalog install <url> <entry-id> [--type mcp|skill] [--config] [--skills-dir]` — installs MCP entries to mcp-config.json or downloads skills
+
+**Patterns:**
+- CLI uses `click` (not typer) — simpler, no pydantic dep, matches project's no-external-deps-in-core philosophy
+- HTTP fetch tries `httpx` first, falls back to stdlib `urllib.request` (no hard runtime dep)
+- Display tries `rich` first, falls back to plain text columns
+- Converter supports both raw marketplace JSON and test fixture wrapper format
+- MCP install merges into existing config files (doesn't overwrite)
+- Auto-detects install type from media type when `--type` not specified
+
+**Dependencies added to pyproject.toml:**
+- `[cli]` extras group: click, httpx, rich
+- `[dev]` group updated to include CLI deps for testing
+- `console_scripts` entry point: `ai-catalog = aicatalog.cli.main:main`
+
+**Test results:** 266 total (242 core + 24 CLI), ruff clean.

@@ -9,6 +9,7 @@ Public API:
     AiCatalogError, AiCatalogParseError, AiCatalogValidationError
 """
 
+from .converter import convert_marketplace, convert_marketplace_file
 from .exceptions import AiCatalogError, AiCatalogParseError, AiCatalogValidationError
 from .models import (
     AiCatalog,
@@ -32,6 +33,9 @@ __all__ = [
     # Serialization
     "serialize",
     "serialize_to_dict",
+    # Conversion
+    "convert_marketplace",
+    "convert_marketplace_file",
     # Validation
     "validate",
     "validate_level",

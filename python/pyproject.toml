@@ -28,10 +28,21 @@ Documentation = "https://agent-card.github.io/ai-card/"
 Repository = "https://github.com/spec-works/ai-catalog"
 Issues = "https://github.com/spec-works/ai-catalog/issues"
 
+[project.scripts]
+ai-catalog = "aicatalog.cli.main:main"
+
 [project.optional-dependencies]
+cli = [
+    "click>=8.1",
+    "httpx>=0.27",
+    "rich>=13.0",
+]
 dev = [
     "pytest>=8.0",
     "ruff>=0.4",
+    "click>=8.1",
+    "httpx>=0.27",
+    "rich>=13.0",
 ]
 
 [tool.hatch.build.targets.wheel]
