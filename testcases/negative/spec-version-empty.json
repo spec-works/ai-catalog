@@ -1,0 +1,10 @@
+{
+  "description": "specVersion is an empty string — specVersion must be a non-empty string in Major.Minor format",
+  "spec_section": "§ Top-Level Structure (TL-1), Edge Cases (EC-3)",
+  "test_ids": ["TL-N06"],
+  "input": {
+    "specVersion": "",
+    "entries": []
+  },
+  "expected_error": "specVersion must not be empty"
+}

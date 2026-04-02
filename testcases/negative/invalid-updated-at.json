@@ -1,0 +1,18 @@
+{
+  "description": "updatedAt field is not a valid RFC 3339 datetime — must be full date-time, not a date-only or arbitrary string",
+  "spec_section": "§ Catalog Entry (CE-13), Edge Cases (EC-14)",
+  "test_ids": ["CE-N07", "CE-N08"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:bad-date",
+        "displayName": "Agent With Invalid Date",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/bad-date/agent-card.json",
+        "updatedAt": "2026-03-15"
+      }
+    ]
+  },
+  "expected_error": "updatedAt must be a full RFC 3339 datetime, got date-only value"
+}

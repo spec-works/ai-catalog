@@ -1,0 +1,16 @@
+{
+  "description": "Catalog entry missing required displayName field",
+  "spec_section": "§ Catalog Entry (CE-3)",
+  "test_ids": ["CE-N02"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:no-name",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/no-name/agent-card.json"
+      }
+    ]
+  },
+  "expected_error": "missing required field: displayName on entry[0]"
+}

@@ -1,0 +1,53 @@
+{
+  "description": "Sample Claude marketplace.json — input for marketplace-to-catalog conversion",
+  "spec_section": "§ Mapping to Claude Code Plugins Marketplace",
+  "test_ids": ["EX-P08"],
+  "input": {
+    "plugins": [
+      {
+        "name": "web-search",
+        "display_name": "Web Search",
+        "description": "Search the web and retrieve current information from websites and online sources",
+        "publisher": {
+          "name": "Anthropic",
+          "url": "https://anthropic.com"
+        },
+        "icon_url": "https://plugins.anthropic.com/icons/web-search.svg",
+        "manifest_url": "https://plugins.anthropic.com/web-search/manifest.json",
+        "categories": ["search", "web", "information-retrieval"],
+        "version": "1.4.0",
+        "updated_at": "2026-03-25T10:00:00Z"
+      },
+      {
+        "name": "github-integration",
+        "display_name": "GitHub Integration",
+        "description": "Interact with GitHub repositories, pull requests, issues, and code reviews",
+        "publisher": {
+          "name": "GitHub",
+          "url": "https://github.com"
+        },
+        "icon_url": "https://plugins.anthropic.com/icons/github.svg",
+        "manifest_url": "https://plugins.anthropic.com/github/manifest.json",
+        "categories": ["developer-tools", "vcs", "code-review"],
+        "version": "2.1.0",
+        "updated_at": "2026-03-20T14:30:00Z"
+      },
+      {
+        "name": "slack-connector",
+        "display_name": "Slack Connector",
+        "description": "Read and send messages, manage channels, and interact with Slack workspaces",
+        "publisher": {
+          "name": "Salesforce",
+          "url": "https://slack.com"
+        },
+        "manifest_url": "https://plugins.anthropic.com/slack/manifest.json",
+        "categories": ["communication", "messaging"],
+        "version": "1.0.2"
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "description": "Expected AI Catalog output — see marketplace-expected.json for the full expected document"
+  }
+}

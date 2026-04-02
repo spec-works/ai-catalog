@@ -1,0 +1,51 @@
+{
+  "description": "Round-trip fidelity test — catalog with metadata containing nested objects that must survive parse → serialize → parse exactly",
+  "spec_section": "§ Top-Level Structure (TL-6), § Catalog Entry (CE-14)",
+  "test_ids": ["RT-P03", "RT-P04"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:data-pipeline",
+        "displayName": "Data Pipeline Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/pipeline/agent-card.json",
+        "metadata": {
+          "deployment": {
+            "region": "us-east-1",
+            "replicas": 3,
+            "resourceLimits": {
+              "cpu": "4",
+              "memoryMb": 8192,
+              "gpuCount": 1
+            }
+          },
+          "monitoring": {
+            "dashboardUrl": "https://monitor.example.com/pipeline",
+            "alertChannels": ["ops-team@example.com", "#ai-alerts"]
+          },
+          "featureFlags": {
+            "enableBatchMode": true,
+            "enableStreaming": false,
+            "maxConcurrency": 10
+          }
+        }
+      }
+    ],
+    "metadata": {
+      "catalogMetadata": {
+        "generatedBy": "catalog-builder",
+        "version": "2.1.0"
+      },
+      "tags": ["production", "us-east"],
+      "priority": 1
+    }
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 1,
+    "conformance_level": "minimal",
+    "round_trip_preserves_metadata": true,
+    "round_trip_preserves_nested_objects": true
+  }
+}

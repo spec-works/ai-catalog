@@ -1,0 +1,28 @@
+{
+  "description": "Provenance link missing required fields (relation and sourceId)",
+  "spec_section": "§ Provenance Link Object (PL-1, PL-2)",
+  "test_ids": ["PL-N01", "PL-N02"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Test Host"
+    },
+    "entries": [
+      {
+        "identifier": "urn:example:agents:bad-provenance",
+        "displayName": "Agent With Bad Provenance",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/bad-prov/agent-card.json",
+        "trustManifest": {
+          "identity": "urn:example:agents:bad-provenance",
+          "provenance": [
+            {
+              "registryUri": "https://registry.example.com"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "expected_error": "missing required fields on provenance[0]: relation, sourceId"
+}

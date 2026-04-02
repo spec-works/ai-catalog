@@ -1,0 +1,9 @@
+{
+  "description": "Missing required entries field — the document MUST contain entries",
+  "spec_section": "§ Top-Level Structure (TL-2)",
+  "test_ids": ["TL-N02"],
+  "input": {
+    "specVersion": "1.0"
+  },
+  "expected_error": "missing required field: entries"
+}

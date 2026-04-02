@@ -1,0 +1,13 @@
+{
+  "description": "Host with displayName as a number instead of a string — displayName MUST be a string",
+  "spec_section": "§ Host Info (HI-1), Edge Cases (EC-11)",
+  "test_ids": ["HI-N02"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": 123
+    },
+    "entries": []
+  },
+  "expected_error": "host displayName must be a string, got number"
+}

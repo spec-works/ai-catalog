@@ -1,0 +1,16 @@
+{
+  "description": "Catalog entry missing required identifier field",
+  "spec_section": "§ Catalog Entry (CE-1)",
+  "test_ids": ["CE-N01"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "displayName": "Agent Without Identifier",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/no-id/agent-card.json"
+      }
+    ]
+  },
+  "expected_error": "missing required field: identifier on entry[0]"
+}

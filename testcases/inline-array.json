@@ -1,0 +1,31 @@
+{
+  "description": "Catalog entry with inline content as a JSON array — inline accepts any JSON value",
+  "spec_section": "§ Catalog Entry (CE-8)",
+  "test_ids": ["CE-P05"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:ai:example:tool-list",
+        "displayName": "Supported Tool List",
+        "mediaType": "application/json",
+        "inline": [
+          {"name": "web_search", "type": "function"},
+          {"name": "code_exec", "type": "function"},
+          {"name": "file_read", "type": "function"}
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 1,
+    "entries": [
+      {
+        "has_url": false,
+        "has_inline": true,
+        "inline_is_array": true
+      }
+    ]
+  }
+}
