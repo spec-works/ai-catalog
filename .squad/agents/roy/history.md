@@ -156,3 +156,23 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 **Covers:** All 3 commands (`convert marketplace`, `explore`, `install`) with full argument/option tables, real examples using test fixtures, common workflows (convert→inspect, explore→install), and 6 documented anti-patterns (missing `--` separator, wrong paths, missing subcommand, wrong identifier format, etc.).
 
 **Source:** Documented from actual `--help` output and source code analysis of ConvertCommand.cs, ExploreCommand.cs, InstallCommand.cs. Confidence: high, source: manual (Darrel requested).
+
+### 2026-07-18: CLI Demo — Convert & Explore Real Marketplace
+
+**Ran:** `convert marketplace` on `testcases/integration/spec-works-plugins-marketplace.json` → produced `spec-works-catalog.json` at repo root with 5 entries (markmyword, markmydeck, xregistry-mcp, officetalk, a2a-ask). All entries correctly mapped: URN identifiers (`urn:marketplace:spec-works-plugins:{name}`), copilot plugin media type, publisher from owner, tags from skills paths.
+
+**Ran:** `explore` on the generated catalog via local HTTP server. Table view, detail view (`--show`), and tag filtering (`--filter-tag`) all worked correctly.
+
+**Observation:** `explore` command requires an HTTP(S) URL — `file://` URIs won't work since `HttpClient` doesn't support them by default. For local catalog inspection, serving via `python -m http.server` is a quick workaround. A future enhancement could add `file://` or local-path support to `explore`.
+
+**Observation:** The `\u002B` JSON escape in the output for `+` in media types (e.g., `application/vnd.copilot.plugin\u002Bjson`) is valid JSON but less human-readable. System.Text.Json's default `JavaScriptEncoder` escapes the `+` character. Could be improved with `JavaScriptEncoder.UnsafeRelaxedJsonEscaping` if desired.
+
+### 2026-04-02T12-20: Marketplace Convert CLI Demo (Interactive)
+
+**Ran:** Full convert marketplace workflow end-to-end with user observing interactively. Input: `testcases/integration/spec-works-plugins-marketplace.json` → Output: `spec-works-catalog.json` (5 entries).
+
+**Also demoed:** `explore` command on generated catalog after serving with local HTTP server.
+
+**Logged observations:**
+- `explore` requires HTTP(S) URLs, not file:// paths (HttpClient limitation)
+- Unicode escaping of + in media types produces `\u002B` (valid JSON, less readable)
