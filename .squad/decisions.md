@@ -214,6 +214,59 @@ ai-catalog/
 
 **Why:** User decision — gives the spec explicit control over schema evolution. Adding members is a deliberate, versioned act rather than ad-hoc extension. Metadata fields remain the open extension point.
 
+---
+
+### CLI Implementation Decisions — Roy (2026-04-02T11:16)
+
+#### CLI-D1: System.CommandLine Beta4
+**Decision:** Used `System.CommandLine` 2.0.0-beta4.22272.1 for command parsing.
+
+**Rationale:** Official .NET library, pre-release but production-proven and widely used. No stable alternative from Microsoft.
+
+#### CLI-D2: MarketplaceConverter Handles Test Fixture Wrapper
+**Decision:** `MarketplaceConverter.Convert()` accepts both raw marketplace JSON and test-fixture-wrapped format.
+
+**Rationale:** Enables seamless testing without unwrapping. No ambiguity since `input` is not a valid marketplace field.
+
+#### CLI-D3: Install Directory Convention
+**Decision:** `.ai-catalog/mcp-config.json` for MCP configs, `.ai-catalog/skills/` for skill artifacts (relative to `--output-dir`).
+
+**Rationale:** Scoped, discoverable installation. Avoids collisions with project files.
+
+#### CLI-D4: PackAsTool for Distribution
+**Decision:** `PackAsTool=true` and `ToolCommandName=ai-catalog` for `dotnet tool install` distribution.
+
+**Rationale:** Standard .NET distribution mechanism ready for NuGet publishing.
+
+---
+
+### CLI Implementation Decisions — Pris (2026-04-02T11:16)
+
+#### CLI-D1: Click over Typer
+**Decision:** Used `click` instead of `typer` for CLI framework.
+
+**Rationale:** No pydantic dependency, aligns with minimal-dependency core library design.
+
+#### CLI-D2: Graceful Degradation for Optional Dependencies
+**Decision:** `httpx` and `rich` optional at runtime; CLI falls back to `urllib.request` and plain text.
+
+**Rationale:** Reduces entry barrier while maintaining enhanced UX when extras installed.
+
+#### CLI-D3: Converter Supports Fixture Wrapper Format
+**Decision:** `convert_marketplace_file()` auto-detects raw marketplace vs test fixture wrapper.
+
+**Rationale:** Enables end-user usage and test validation without preprocessing.
+
+#### CLI-D4: MCP Install Merges Config
+**Decision:** `install --type mcp` merges into existing mcp-config.json rather than overwriting.
+
+**Rationale:** Prevents data loss for users with pre-existing MCP configurations.
+
+#### CLI-D5: Auto-detect Install Type
+**Decision:** When `--type` omitted, auto-detect from entry's `mediaType` field (looks for "mcp" or "model-context-protocol" substrings).
+
+**Rationale:** Reduces friction for common cases; explicit override available when needed.
+
 ## Governance
 
 - All meaningful changes require team consensus

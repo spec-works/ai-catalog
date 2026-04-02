@@ -62,3 +62,35 @@ Team formed 2026-04-02. Initial setup — no code yet.
 Your work has shipped. Orchestration log written to `.squad/orchestration-log/2026-04-02T11-05-roy.md`. Parity validated with Pris's Python implementation.
 
 **Status:** Ready for CLI phase.
+
+### 2026-04-02: CLI Tool Implementation Complete
+
+**Delivered:** `ai-catalog` CLI tool at `dotnet/src/AiCatalog.Cli/` with 3 commands, plus integration tests at `dotnet/test/AiCatalog.Cli.Tests/`. All 151 tests pass (138 original + 13 new).
+
+**Project layout additions:**
+- `dotnet/src/AiCatalog.Cli/` — Console app (`SpecWorks.AiCatalog.Cli`), net9.0, System.CommandLine
+- `dotnet/src/AiCatalog.Cli/Program.cs` — Entry point, wires root command with 3 subcommands
+- `dotnet/src/AiCatalog.Cli/Commands/ConvertCommand.cs` — `convert marketplace <input-file> [--output <file>]`
+- `dotnet/src/AiCatalog.Cli/Commands/ExploreCommand.cs` — `explore <url> [--filter-tag] [--filter-media-type] [--show]`
+- `dotnet/src/AiCatalog.Cli/Commands/InstallCommand.cs` — `install <catalog-url> <entry-id> [--type mcp|skill] [--output-dir]`
+- `dotnet/src/AiCatalog.Cli/Conversion/MarketplaceConverter.cs` — Core converter logic (marketplace→catalog)
+- `dotnet/test/AiCatalog.Cli.Tests/ConvertMarketplaceTests.cs` — 6 tests against shared fixtures
+- `dotnet/test/AiCatalog.Cli.Tests/CommandStructureTests.cs` — 7 tests for command parsing/help/integration
+
+**Patterns chosen:**
+- System.CommandLine beta4 for command parsing (latest stable-ish release)
+- MarketplaceConverter as pure static class in Conversion/ — separates domain logic from CLI wiring
+- Fixture format awareness: converter handles both raw `{"plugins":[...]}` and test-fixture-wrapped `{"input":{"plugins":[...]}}` formats
+- Install command auto-detects type from mediaType (mcp vs skill) when --type not specified
+- MCP install generates/merges `.ai-catalog/mcp-config.json`; skill install downloads to `.ai-catalog/skills/`
+- CLI is a dotnet tool (`PackAsTool=true`, `ToolCommandName=ai-catalog`)
+- Console.WriteLine output not captured by System.CommandLine TestConsole — file-output tests used for content verification
+- TFD-005 mapping rules verified: `urn:claude:plugins:{name}` identifier pattern, all field mappings confirmed
+
+**Test strategy:** ConvertMarketplaceTests verifies converter against shared fixtures (entry-by-entry field comparison, round-trip through parser, identifier pattern). CommandStructureTests verifies CLI argument parsing, help output, error handling, and file output.
+
+---
+
+## CLI Phase Complete (2026-04-02T11:16)
+
+Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific inbox. Both toolchains ready for integration.
