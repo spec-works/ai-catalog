@@ -118,3 +118,33 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 **Learning:** Validator requires non-empty `publisher.identifier`. When marketplace owner has no URL, converter must generate a synthetic URN identifier to pass conformance validation.
 
 **Integration test file:** `dotnet/test/AiCatalog.Cli.Tests/MarketplaceIntegrationTests.cs` — covers library conversion, CLI end-to-end file I/O, round-trip serialize→parse, conformance validation, stream-based conversion.
+
+### 2026-04-02T11:50: Integration Tests with Real Marketplace Fixtures
+
+**Delivered:** 30 new integration tests using real-world marketplace.json files. All 180 tests pass (138 original + 42 CLI total).
+
+**Shared fixtures (added):**
+- `testcases/integration/spec-works-plugins-marketplace.json` — 5 copilot plugins (markmyword, markmydeck, xregistry-mcp, officetalk, a2a-ask)
+- `testcases/integration/work-iq-marketplace.json` — 3 copilot plugins (workiq, microsoft-365-agents-toolkit with 3 skills, workiq-productivity with 9 skills)
+
+**Converter extension:** `MarketplaceConverter` now auto-detects and handles two marketplace formats:
+- **Claude format:** plugins with `display_name`, `manifest_url`, per-plugin `publisher`
+- **Copilot format:** plugins with `source`, `skills[]` array, root-level `owner`
+
+**Key mapping for copilot format:**
+- Identifier: `urn:marketplace:{marketplace}:{name}` (e.g., `urn:marketplace:spec-works-plugins:markmyword`)
+- Display name: `plugin.name`
+- URL: `plugin.source`
+- Media type: `application/vnd.copilot.plugin+json`
+- Tags: Extracted from `skills[]` path leaf names
+- Publisher: Derived from root `owner` object; generates synthetic `urn:marketplace:owner:{name}` URN if owner lacks URL
+
+**Test breakdown:** 30 new tests cover:
+- Library conversion validation against both fixture sets
+- CLI file I/O round-trip (convert → parse → serialize)
+- Entry field verification (identifiers, names, types match expected patterns)
+- Stream-based conversion
+
+**Backward compatibility:** All 138 original tests pass; no existing behavior modified. Converter is backward compatible — Claude format conversion unchanged.
+
+**Orchestration log:** `.squad/orchestration-log/2026-04-02T11-50-roy.md`

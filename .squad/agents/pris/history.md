@@ -107,3 +107,34 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 **Total suite:** 306 tests (266 existing + 40 integration), ruff clean.
 
 **Key finding:** Marketplace plugins lack `manifest_url`, so converted entries have no `url`/`inline`. Validator correctly reports one content error per entry. This is expected — the marketplace format doesn't carry artifact URLs.
+
+### 2026-04-02T11:50: Integration Tests with Real Marketplace Fixtures
+
+**Delivered:** 40 new integration tests using real-world marketplace.json files. All 306 tests pass (266 original + 40 integration).
+
+**Shared fixtures (added, coordinated with Roy):**
+- `testcases/integration/spec-works-plugins-marketplace.json` — 5 copilot plugins from spec-works/plugins
+- `testcases/integration/work-iq-marketplace.json` — 3 copilot plugins from microsoft/work-iq
+
+**Test file:** `python/tests/test_integration.py` — 40 tests across 7 test classes:
+- `TestConversionProducesValidCatalog` (4): Conversion returns AiCatalog, serializes to valid JSON
+- `TestEntryCounts` (2): Verify 5 and 3 plugin counts respectively
+- `TestFieldFidelity` (14): Spot-check identifiers (URN pattern), names, descriptions, versions, media types, publisher data
+- `TestConformanceValidation` (6): MINIMAL conformance level, one content validation error per entry (missing url/inline)
+- `TestRoundTrip` (5): Serialize→parse fidelity, stable conformance level, double round-trip produces identical JSON
+- `TestCliConvertMarketplace` (6): CLI stdout output, file-based conversion, parse-back verification, entry name checks
+- `TestConvertMarketplaceDict` (3): Dict-based conversion API, file/dict equivalence
+
+**Converter parity with Roy:**
+- Auto-detects Claude format (`display_name`) vs copilot format (`source`)
+- Copilot format generates `urn:marketplace:{marketplace}:{name}` identifiers
+- Creates synthetic `urn:marketplace:owner:{name}` when marketplace owner lacks URL
+- Both formats produce `application/vnd.copilot.plugin+json` media type for copilot format
+
+**Expected behavior learning:** Marketplace entries have no `url` or `inline`; validator reports single content error per entry during MINIMAL conformance check. This is correct — marketplace format doesn't include artifact content references.
+
+**Linting:** ruff clean (0 errors)
+
+**Backward compatibility:** All 266 original tests pass; no existing behavior modified.
+
+**Orchestration log:** `.squad/orchestration-log/2026-04-02T11-50-pris.md`

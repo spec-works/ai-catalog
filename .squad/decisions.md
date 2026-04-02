@@ -267,6 +267,42 @@ ai-catalog/
 
 **Rationale:** Reduces friction for common cases; explicit override available when needed.
 
+---
+
+### Integration Test Decisions — Roy & Pris (2026-04-02T11:50)
+
+#### INT-D1: Copilot Marketplace Format Extension
+**Decision:** Extended `MarketplaceConverter` to auto-detect and handle both Claude and copilot marketplace formats.
+
+**Format comparison:**
+
+| Aspect | Claude Format | Copilot Format |
+|---|---|---|
+| Detection | `display_name` present | `source` present, no `display_name` |
+| Identifier prefix | `urn:claude:plugins:` | `urn:marketplace:{marketplace}:` |
+| Display name source | `display_name` field | `name` field |
+| URL source | `manifest_url` | `source` |
+| Tags source | `categories[]` | `skills[]` (leaf names) |
+| Media type | `application/vnd.claude.code-plugin+json` | `application/vnd.copilot.plugin+json` |
+| Publisher source | Per-plugin `publisher` object | Root-level `owner` object |
+
+When `owner` has no `url`, converter generates synthetic `urn:marketplace:owner:{name}` identifier to satisfy publisher.identifier requirement.
+
+**Rationale:** Real-world marketplace.json files (spec-works/plugins, microsoft/work-iq) use copilot format. Support both for backward compatibility and practical interop.
+
+**Consequence:** All 138 existing tests pass; 30 new .NET + 40 Python integration tests verify both formats.
+
+#### INT-D2: Shared Integration Fixtures in testcases/integration/
+**Decision:** Real-world marketplace.json files stored in `testcases/integration/` as raw (non-wrapped) shared cross-language fixtures per ADR-006.
+
+**Fixtures:**
+- `testcases/integration/spec-works-plugins-marketplace.json` — 5 copilot plugins from spec-works/plugins
+- `testcases/integration/work-iq-marketplace.json` — 3 copilot plugins from microsoft/work-iq
+
+**Rationale:** Shared fixtures ensure .NET and Python implement parity. Raw format (no wrapper) since converter already handles marketplace files. `integration/` subdirectory distinguishes from Leon's unit fixtures.
+
+**Consequence:** Cross-language integration test suite; both toolchains can validate real-world plugin conversion end-to-end.
+
 ## Governance
 
 - All meaningful changes require team consensus
