@@ -148,3 +148,11 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 **Backward compatibility:** All 138 original tests pass; no existing behavior modified. Converter is backward compatible — Claude format conversion unchanged.
 
 **Orchestration log:** `.squad/orchestration-log/2026-04-02T11-50-roy.md`
+
+### CLI Skill Documentation Created
+
+**Delivered:** `.squad/skills/dotnet-cli/SKILL.md` — project-level skill teaching any agent how to build, run, and use the AI Catalog .NET CLI from this repo.
+
+**Covers:** All 3 commands (`convert marketplace`, `explore`, `install`) with full argument/option tables, real examples using test fixtures, common workflows (convert→inspect, explore→install), and 6 documented anti-patterns (missing `--` separator, wrong paths, missing subcommand, wrong identifier format, etc.).
+
+**Source:** Documented from actual `--help` output and source code analysis of ConvertCommand.cs, ExploreCommand.cs, InstallCommand.cs. Confidence: high, source: manual (Darrel requested).
