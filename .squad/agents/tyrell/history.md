@@ -51,3 +51,25 @@ Team formed 2026-04-02. Initial setup — no code yet.
 **Architecture ADRs produced:** 8 comprehensive decisions covering project structure, domain model, validation, parsing, CLI, cross-language consistency, test case design, and specs.json shape.
 
 **Impact on Tyrell's work:** ADR-002 (domain model 9 types) aligns with spec structure extracted. ADR-003 (3 conformance levels) matches spec definition. ADR-007 (test wrapper format) frames how to structure the 108 test cases identified.
+
+### 2026-04-02 — Spec Feedback Document Produced
+
+**Output:** `docs/spec-feedback.md` — consolidated implementer feedback to spec authors.
+
+**Key themes from implementation feedback:**
+1. **String comparison rules** are the biggest gap — identity/identifier matching, digest algorithm naming, and specVersion parsing all need explicit comparison semantics defined.
+2. **Open vs. closed model** not stated — affects every parser. CDDL maps are technically closed but real JSON formats need extension. Must be explicit.
+3. **Conformance level thresholds** need tightening — L3's "and/or" language is ambiguous (one trustManifest vs. all entries).
+4. **Spec example violates own rules** — Claude Code Plugin appendix uses SHA-1 in sourceDigest, which the normative §Digest Format says MUST be rejected.
+5. **JSON Schema absence** is a practical gap — the JSON ecosystem runs on JSON Schema; providing one (even informative) would reduce implementation effort significantly.
+6. **Mixed versioned/unversioned uniqueness** is a real edge case the spec should address with examples or a truth table.
+
+**Sources used:** All 9 TD decisions, Deckard's 8 ADRs, full requirements checklist (80+ requirements, 15 edge case categories), and direct spec reading. Organized into 6 categories per Darrel's request.
+
+### 2026-04-02T10-55: Spec Feedback Document Completed
+
+**Output:** `docs/spec-feedback.md` finalized — 21 KB, 18 spec issues across 6 categories.
+
+**Used by:** Feedback document consumed as input by Scribe for orchestration logging and cross-team history updates.
+
+**Next:** Feedback submitted to spec authors; complements Deckard's architecture feedback for forward compatibility planning.

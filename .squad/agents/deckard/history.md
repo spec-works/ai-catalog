@@ -47,3 +47,17 @@ Team formed 2026-04-02. Initial setup — no code yet.
 **Key interpretation decisions (TD-1 through TD-9):** inline null handling, version format flexibility, mixed versioning, URI comparison, weak digest rejection, open model for unknown fields, conformance auto-detect, nested bundle validation, informative appendices scope.
 
 **Impact on Deckard's architecture:** ADR-002 (domain model) and ADR-003 (validation) now have concrete requirements from spec extraction. ADR-004 (parsing) aligns with TD-6 (open model for unknown fields).
+
+### 2026-04-02: Spec Feedback Written — API Design Perspective
+
+**Deckard produced spec feedback document:** `docs/spec-feedback-architecture.md` — 20 items covering implementation friction, cross-language challenges, and forward compatibility.
+
+**Key findings:**
+- **API Friction:** url/inline exclusivity, metadata open maps, collection navigation, version format flexibility, trust identity binding
+- **Cross-Language Challenges:** identifier normalization, digest algorithm vetting, unknown version handling
+- **Tooling Gaps:** well-known URI discovery, media type registry, conformance levels, bundle validation depth
+- **Forward Compatibility:** spec versioning strategy missing, backward compatibility rules undefined
+
+**Recommendations:** Mostly clarifications (spec prose), test cases for edge cases, and registries (digest algorithms, identity types, well-known tags).
+
+**Output:** Supplements Tyrell's detailed spec feedback with API design angle — focused on what makes libraries hard to build consistently across .NET and Python.
