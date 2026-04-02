@@ -1,0 +1,29 @@
+{
+  "description": "Attestation missing required mediaType field",
+  "spec_section": "§ Attestation Object (AT-3)",
+  "test_ids": ["AT-N03"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Test Host"
+    },
+    "entries": [
+      {
+        "identifier": "urn:example:agents:bad-att-media",
+        "displayName": "Agent With Incomplete Attestation",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/bad-att/agent-card.json",
+        "trustManifest": {
+          "identity": "urn:example:agents:bad-att-media",
+          "attestations": [
+            {
+              "type": "SOC2-Type2",
+              "uri": "https://audits.example.com/soc2.pdf"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "expected_error": "missing required field: mediaType on attestation[0]"
+}

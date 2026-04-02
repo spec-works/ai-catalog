@@ -1,0 +1,18 @@
+{
+  "description": "tags array contains a non-string element — tags MUST be an array of strings",
+  "spec_section": "§ Catalog Entry (CE-10), Edge Cases (EC-11)",
+  "test_ids": ["CE-N06"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:bad-tags",
+        "displayName": "Agent With Bad Tags",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/bad-tags/agent-card.json",
+        "tags": ["valid-tag", 123, true]
+      }
+    ]
+  },
+  "expected_error": "tags must be an array of strings, found non-string element at index 1"
+}

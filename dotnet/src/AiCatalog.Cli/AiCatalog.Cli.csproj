@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>SpecWorks.AiCatalog.Cli</RootNamespace>
+    <AssemblyName>ai-catalog</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>SpecWorks.AiCatalog.Cli</PackageId>
+    <Version>0.1.0</Version>
+    <Description>CLI tool for working with AI Catalog documents (application/ai-catalog+json). Convert, explore, and install AI artifacts.</Description>
+    <Authors>SpecWorks</Authors>
+    <PackageTags>ai-catalog;ai-card;specworks;cli</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/spec-works/ai-catalog</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ai-catalog</ToolCommandName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AiCatalog\AiCatalog.csproj" />
+  </ItemGroup>
+
+</Project>

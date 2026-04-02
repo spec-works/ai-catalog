@@ -1,0 +1,31 @@
+{
+  "description": "Attestation size is a negative number — size is typed as uint in CDDL and must be non-negative",
+  "spec_section": "§ Attestation Object (AT-5), CDDL Schema (CD-4)",
+  "test_ids": ["AT-N04"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Test Host"
+    },
+    "entries": [
+      {
+        "identifier": "urn:example:agents:negative-size",
+        "displayName": "Agent With Negative Attestation Size",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/neg-size/agent-card.json",
+        "trustManifest": {
+          "identity": "urn:example:agents:negative-size",
+          "attestations": [
+            {
+              "type": "SOC2-Type2",
+              "uri": "https://audits.example.com/soc2.pdf",
+              "mediaType": "application/pdf",
+              "size": -1
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "expected_error": "attestation size must be a non-negative integer, got -1"
+}

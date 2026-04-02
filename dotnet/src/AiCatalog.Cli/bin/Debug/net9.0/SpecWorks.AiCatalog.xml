@@ -1,0 +1,501 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SpecWorks.AiCatalog</name>
+    </assembly>
+    <members>
+        <member name="T:SpecWorks.AiCatalog.AiCatalogException">
+            <summary>
+            Base exception for all AI Catalog operations.
+            </summary>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.AiCatalogException.#ctor">
+            <summary>Initializes a new instance of <see cref="T:SpecWorks.AiCatalog.AiCatalogException"/>.</summary>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.AiCatalogException.#ctor(System.String)">
+            <summary>Initializes a new instance with the specified message.</summary>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.AiCatalogException.#ctor(System.String,System.Exception)">
+            <summary>Initializes a new instance with the specified message and inner exception.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Models.AiCatalog">
+            <summary>
+            Top-level AI Catalog document containing entries and optional host, collections, and metadata.
+            Maps to the root object of an <c>application/ai-catalog+json</c> document.
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.AiCatalog.SpecVersion">
+            <summary>The specification version of this catalog (e.g., "1.0").</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.AiCatalog.Entries">
+            <summary>The list of catalog entries describing AI artifacts.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.AiCatalog.Host">
+            <summary>Optional host information for the catalog operator.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.AiCatalog.Collections">
+            <summary>Optional collection references for partitioning the catalog.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.AiCatalog.Metadata">
+            <summary>Optional open metadata map for extension data.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.AiCatalog.ExtensionData">
+            <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Models.Attestation">
+            <summary>
+            An attestation representing a verifiable proof (audit report, compliance cert, etc.).
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Attestation.Type">
+            <summary>The attestation type (e.g., "SOC2-Type2") (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Attestation.Uri">
+            <summary>URI to the attestation document (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Attestation.MediaType">
+            <summary>Media type of the attestation document (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Attestation.Digest">
+            <summary>Optional digest of the attestation document (e.g., "sha256:abc...").</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Attestation.Size">
+            <summary>Optional size in bytes of the attestation document (must be non-negative).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Attestation.Description">
+            <summary>Optional human-readable description.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Attestation.ExtensionData">
+            <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Models.CatalogEntry">
+            <summary>
+            A single catalog entry describing an AI artifact.
+            Must have exactly one of <see cref="P:SpecWorks.AiCatalog.Models.CatalogEntry.Url"/> or <see cref="P:SpecWorks.AiCatalog.Models.CatalogEntry.Inline"/>.
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.Identifier">
+            <summary>The unique identifier for this entry.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.DisplayName">
+            <summary>The human-readable display name.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.MediaType">
+            <summary>The IANA media type describing the artifact format.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.Url">
+            <summary>URL to the artifact. Mutually exclusive with <see cref="P:SpecWorks.AiCatalog.Models.CatalogEntry.Inline"/>.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.Inline">
+            <summary>Inline artifact content (opaque JSON value). Mutually exclusive with <see cref="P:SpecWorks.AiCatalog.Models.CatalogEntry.Url"/>.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.Version">
+            <summary>Optional version string for multi-version entries.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.Description">
+            <summary>Optional human-readable description of the artifact.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.Tags">
+            <summary>Optional string tags for categorization.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.Publisher">
+            <summary>Optional publisher information.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.TrustManifest">
+            <summary>Optional trust manifest for this entry.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.UpdatedAt">
+            <summary>Optional RFC 3339 datetime when the entry was last updated.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.Metadata">
+            <summary>Optional open metadata map for extension data.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CatalogEntry.ExtensionData">
+            <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Models.CollectionReference">
+            <summary>
+            A reference to another catalog (collection) for partitioning.
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CollectionReference.DisplayName">
+            <summary>The human-readable display name (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CollectionReference.Url">
+            <summary>The URL to the referenced catalog (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CollectionReference.Description">
+            <summary>Optional description of the collection.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CollectionReference.Tags">
+            <summary>Optional string tags for categorization.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.CollectionReference.ExtensionData">
+            <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Models.HostInfo">
+            <summary>
+            Host information describing the catalog operator.
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.HostInfo.DisplayName">
+            <summary>The human-readable display name (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.HostInfo.Identifier">
+            <summary>Optional identifier for the host.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.HostInfo.DocumentationUrl">
+            <summary>Optional URL to host documentation.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.HostInfo.LogoUrl">
+            <summary>Optional URL or data URI for the host logo.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.HostInfo.TrustManifest">
+            <summary>Optional trust manifest for the host.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.HostInfo.ExtensionData">
+            <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Models.ProvenanceLink">
+            <summary>
+            A provenance link describing lineage and origin of an artifact.
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.ProvenanceLink.Relation">
+            <summary>The relation type (e.g., "publishedFrom", "derivedFrom") (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.ProvenanceLink.SourceId">
+            <summary>The source identifier (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.ProvenanceLink.SourceDigest">
+            <summary>Optional digest of the source.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.ProvenanceLink.RegistryUri">
+            <summary>Optional registry URI.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.ProvenanceLink.StatementUri">
+            <summary>Optional statement URI.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.ProvenanceLink.SignatureRef">
+            <summary>Optional signature reference.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.ProvenanceLink.ExtensionData">
+            <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Models.Publisher">
+            <summary>
+            Publisher information for a catalog entry.
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Publisher.Identifier">
+            <summary>The publisher's identifier (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Publisher.DisplayName">
+            <summary>The publisher's display name (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Publisher.IdentityType">
+            <summary>Optional identity type (e.g., "did", "urn").</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.Publisher.ExtensionData">
+            <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Models.TrustManifest">
+            <summary>
+            Trust manifest containing identity, attestations, provenance, and policy information.
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.Identity">
+            <summary>The identity this trust manifest is about (required). Must match the containing entry's identifier.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.IdentityType">
+            <summary>Optional identity type (e.g., "did", "urn").</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.TrustSchema">
+            <summary>Optional trust schema defining the trust framework.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.Attestations">
+            <summary>Optional list of attestations (verifiable proofs).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.Provenance">
+            <summary>Optional provenance links (lineage records).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.PrivacyPolicyUrl">
+            <summary>Optional privacy policy URL.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.TermsOfServiceUrl">
+            <summary>Optional terms of service URL.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.Signature">
+            <summary>Optional cryptographic signature.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.Metadata">
+            <summary>Optional open metadata map for extension data.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustManifest.ExtensionData">
+            <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Models.TrustSchema">
+            <summary>
+            Trust schema defining the trust framework and verification methods.
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustSchema.Identifier">
+            <summary>The trust schema identifier (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustSchema.Version">
+            <summary>The trust schema version (required).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustSchema.GovernanceUri">
+            <summary>Optional URI to the governance document.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustSchema.VerificationMethods">
+            <summary>Optional list of verification methods (e.g., "did", "x509", "dns-01").</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Models.TrustSchema.ExtensionData">
+            <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Parsing.AiCatalogParseException">
+            <summary>
+            Exception thrown when JSON cannot be parsed into an AI Catalog document.
+            </summary>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Parsing.AiCatalogParseException.#ctor(System.String)">
+            <summary>Initializes a new instance of <see cref="T:SpecWorks.AiCatalog.Parsing.AiCatalogParseException"/>.</summary>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Parsing.AiCatalogParseException.#ctor(System.String,System.Exception)">
+            <summary>Initializes a new instance with the specified message and inner exception.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Parsing.AiCatalogParser">
+            <summary>
+            Parses JSON into <see cref="N:SpecWorks.AiCatalog"/> instances.
+            Does NOT validate conformance — use <see cref="T:SpecWorks.AiCatalog.Validation.AiCatalogValidator"/> for that.
+            </summary>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Parsing.AiCatalogParser.Parse(System.String)">
+            <summary>
+            Parses a JSON string into an <see cref="N:SpecWorks.AiCatalog"/>.
+            </summary>
+            <param name="json">The JSON string to parse.</param>
+            <returns>A parsed <see cref="N:SpecWorks.AiCatalog"/> instance.</returns>
+            <exception cref="T:SpecWorks.AiCatalog.Parsing.AiCatalogParseException">Thrown when the JSON is malformed or has type mismatches.</exception>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Parsing.AiCatalogParser.Parse(System.IO.Stream)">
+            <summary>
+            Parses a JSON stream into an <see cref="N:SpecWorks.AiCatalog"/>.
+            </summary>
+            <param name="stream">The stream containing JSON.</param>
+            <returns>A parsed <see cref="N:SpecWorks.AiCatalog"/> instance.</returns>
+            <exception cref="T:SpecWorks.AiCatalog.Parsing.AiCatalogParseException">Thrown when the JSON is malformed or has type mismatches.</exception>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Serialization.AiCatalogSerializer">
+            <summary>
+            Serializes <see cref="N:SpecWorks.AiCatalog"/> instances to JSON.
+            Omits null optional fields and preserves metadata values exactly.
+            </summary>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Serialization.AiCatalogSerializer.Serialize(SpecWorks.AiCatalog.Models.AiCatalog)">
+            <summary>
+            Serializes an <see cref="N:SpecWorks.AiCatalog"/> to a JSON string.
+            </summary>
+            <param name="catalog">The catalog to serialize.</param>
+            <returns>A JSON string representation.</returns>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Serialization.AiCatalogSerializer.Serialize(SpecWorks.AiCatalog.Models.AiCatalog,System.IO.Stream)">
+            <summary>
+            Serializes an <see cref="N:SpecWorks.AiCatalog"/> to a stream.
+            </summary>
+            <param name="catalog">The catalog to serialize.</param>
+            <param name="stream">The stream to write to.</param>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Validation.AiCatalogValidator">
+            <summary>
+            Validates <see cref="N:SpecWorks.AiCatalog"/> instances against the AI Card specification conformance levels.
+            </summary>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Validation.AiCatalogValidator.Validate(SpecWorks.AiCatalog.Models.AiCatalog)">
+            <summary>
+            Validates a catalog and auto-detects the highest conformance level.
+            </summary>
+            <param name="catalog">The catalog to validate.</param>
+            <returns>A <see cref="T:SpecWorks.AiCatalog.Validation.ValidationResult"/> with detected conformance level.</returns>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Validation.AiCatalogValidator.Validate(SpecWorks.AiCatalog.Models.AiCatalog,SpecWorks.AiCatalog.Validation.ConformanceLevel)">
+            <summary>
+            Validates a catalog against a specific conformance level.
+            </summary>
+            <param name="catalog">The catalog to validate.</param>
+            <param name="level">The conformance level to validate against.</param>
+            <returns>A <see cref="T:SpecWorks.AiCatalog.Validation.ValidationResult"/> for the specified level.</returns>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Validation.AiCatalogValidator.MajorMinorPattern">
+            <remarks>
+            Pattern:<br/>
+            <code>^\\d+\\.\\d+$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a Unicode digit atomically at least once.<br/>
+            ○ Match '.'.<br/>
+            ○ Match a Unicode digit atomically at least once.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Validation.AiCatalogValidator.DateOnlyPattern">
+            <remarks>
+            Pattern:<br/>
+            <code>^\\d{4}-\\d{2}-\\d{2}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a Unicode digit exactly 4 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a Unicode digit exactly 2 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a Unicode digit exactly 2 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Validation.ConformanceLevel">
+            <summary>
+            Conformance levels as defined by the AI Card specification.
+            </summary>
+        </member>
+        <member name="F:SpecWorks.AiCatalog.Validation.ConformanceLevel.Minimal">
+            <summary>Level 1: specVersion + entries with required fields.</summary>
+        </member>
+        <member name="F:SpecWorks.AiCatalog.Validation.ConformanceLevel.Discoverable">
+            <summary>Level 2: Minimal + host with displayName.</summary>
+        </member>
+        <member name="F:SpecWorks.AiCatalog.Validation.ConformanceLevel.Trusted">
+            <summary>Level 3: Discoverable + trustManifest on entries and/or host.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Validation.DiagnosticSeverity">
+            <summary>
+            Severity of a validation diagnostic.
+            </summary>
+        </member>
+        <member name="F:SpecWorks.AiCatalog.Validation.DiagnosticSeverity.Error">
+            <summary>An error that prevents conformance at the current level.</summary>
+        </member>
+        <member name="F:SpecWorks.AiCatalog.Validation.DiagnosticSeverity.Warning">
+            <summary>A warning that does not prevent conformance but indicates a potential issue.</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Validation.ValidationDiagnostic">
+            <summary>
+            A single validation diagnostic (error or warning).
+            </summary>
+            <param name="Severity">Error or warning.</param>
+            <param name="Message">Human-readable description of the issue.</param>
+            <param name="Path">JSON pointer-style path to the element (e.g., "entries[0].trustManifest.identity").</param>
+        </member>
+        <member name="M:SpecWorks.AiCatalog.Validation.ValidationDiagnostic.#ctor(SpecWorks.AiCatalog.Validation.DiagnosticSeverity,System.String,System.String)">
+            <summary>
+            A single validation diagnostic (error or warning).
+            </summary>
+            <param name="Severity">Error or warning.</param>
+            <param name="Message">Human-readable description of the issue.</param>
+            <param name="Path">JSON pointer-style path to the element (e.g., "entries[0].trustManifest.identity").</param>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Validation.ValidationDiagnostic.Severity">
+            <summary>Error or warning.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Validation.ValidationDiagnostic.Message">
+            <summary>Human-readable description of the issue.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Validation.ValidationDiagnostic.Path">
+            <summary>JSON pointer-style path to the element (e.g., "entries[0].trustManifest.identity").</summary>
+        </member>
+        <member name="T:SpecWorks.AiCatalog.Validation.ValidationResult">
+            <summary>
+            The result of validating an AI Catalog document.
+            </summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Validation.ValidationResult.IsValid">
+            <summary>Whether the catalog is valid (has no errors at the evaluated level).</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Validation.ValidationResult.ConformanceLevel">
+            <summary>The highest conformance level the catalog satisfies.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Validation.ValidationResult.Errors">
+            <summary>Validation errors.</summary>
+        </member>
+        <member name="P:SpecWorks.AiCatalog.Validation.ValidationResult.Warnings">
+            <summary>Validation warnings.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MajorMinorPattern_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the MajorMinorPattern method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.MajorMinorPattern_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MajorMinorPattern_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MajorMinorPattern_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MajorMinorPattern_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MajorMinorPattern_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MajorMinorPattern_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MajorMinorPattern_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MajorMinorPattern_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DateOnlyPattern_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the DateOnlyPattern method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.DateOnlyPattern_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DateOnlyPattern_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DateOnlyPattern_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DateOnlyPattern_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DateOnlyPattern_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DateOnlyPattern_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DateOnlyPattern_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DateOnlyPattern_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Utilities">
+            <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout">
+            <summary>Default timeout value set in <see cref="T:System.AppContext"/>, or <see cref="F:System.Text.RegularExpressions.Regex.InfiniteMatchTimeout"/> if none was set.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
+            <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
+        </member>
+    </members>
+</doc>

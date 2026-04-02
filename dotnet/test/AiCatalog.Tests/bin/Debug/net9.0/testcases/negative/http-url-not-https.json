@@ -1,0 +1,17 @@
+{
+  "description": "Entry URL using HTTP instead of HTTPS — all URLs MUST be served over HTTPS per security considerations",
+  "spec_section": "§ Security Considerations (SC-1)",
+  "test_ids": ["SC-N01"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:insecure",
+        "displayName": "Insecure Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "http://agents.example.com/insecure/agent-card.json"
+      }
+    ]
+  },
+  "expected_error": "url uses HTTP; MUST be HTTPS per security requirements"
+}

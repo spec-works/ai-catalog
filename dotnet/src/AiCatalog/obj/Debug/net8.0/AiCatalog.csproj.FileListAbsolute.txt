@@ -1,0 +1,13 @@
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\bin\Debug\net8.0\SpecWorks.AiCatalog.deps.json
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\bin\Debug\net8.0\SpecWorks.AiCatalog.dll
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\bin\Debug\net8.0\SpecWorks.AiCatalog.pdb
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\bin\Debug\net8.0\SpecWorks.AiCatalog.xml
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\obj\Debug\net8.0\AiCatalog.GeneratedMSBuildEditorConfig.editorconfig
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\obj\Debug\net8.0\AiCatalog.AssemblyInfoInputs.cache
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\obj\Debug\net8.0\AiCatalog.AssemblyInfo.cs
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\obj\Debug\net8.0\AiCatalog.csproj.CoreCompileInputs.cache
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\obj\Debug\net8.0\SpecWorks.AiCatalog.dll
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\obj\Debug\net8.0\refint\SpecWorks.AiCatalog.dll
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\obj\Debug\net8.0\SpecWorks.AiCatalog.xml
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\obj\Debug\net8.0\SpecWorks.AiCatalog.pdb
+C:\src\github\spec-works\ai-catalog\dotnet\src\AiCatalog\obj\Debug\net8.0\ref\SpecWorks.AiCatalog.dll

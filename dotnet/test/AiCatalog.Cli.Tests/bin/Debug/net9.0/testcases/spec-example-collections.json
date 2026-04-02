@@ -1,0 +1,70 @@
+{
+  "description": "Catalog with collections — references to child catalogs organized by topic",
+  "spec_section": "§ Collections (Collection Reference), § Example: Catalog with Collections",
+  "test_ids": ["EX-P03", "CO-P03"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Northwind AI Hub",
+      "identifier": "did:web:northwind.com",
+      "documentationUrl": "https://docs.northwind.com/ai-hub"
+    },
+    "entries": [
+      {
+        "identifier": "urn:northwind:agents:customer-support",
+        "displayName": "Customer Support Agent",
+        "description": "Multi-lingual customer support agent for the Northwind product line",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.northwind.com/support/agent-card.json",
+        "version": "4.1.0",
+        "tags": ["support", "customer-service", "multilingual"]
+      }
+    ],
+    "collections": [
+      {
+        "displayName": "MCP Servers",
+        "url": "https://catalogs.northwind.com/mcp-servers.json",
+        "description": "All MCP server integrations maintained by Northwind",
+        "tags": ["mcp", "integrations"]
+      },
+      {
+        "displayName": "Agent Cards",
+        "url": "https://catalogs.northwind.com/agent-cards.json",
+        "description": "A2A-compatible agent cards",
+        "tags": ["a2a", "agents"]
+      },
+      {
+        "displayName": "Partner Plugins",
+        "url": "https://catalogs.northwind.com/partner-plugins.json",
+        "description": "Third-party Claude Code plugins vetted by Northwind"
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 1,
+    "collection_count": 3,
+    "conformance_level": "discoverable",
+    "has_host": true,
+    "collections": [
+      {
+        "display_name": "MCP Servers",
+        "has_url": true,
+        "has_description": true,
+        "has_tags": true
+      },
+      {
+        "display_name": "Agent Cards",
+        "has_url": true,
+        "has_description": true,
+        "has_tags": true
+      },
+      {
+        "display_name": "Partner Plugins",
+        "has_url": true,
+        "has_description": true,
+        "has_tags": false
+      }
+    ]
+  }
+}

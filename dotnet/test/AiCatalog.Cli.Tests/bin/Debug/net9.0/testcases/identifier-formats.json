@@ -1,0 +1,34 @@
+{
+  "description": "Entries with various identifier formats — URN, HTTPS URL, and DID identifiers are all valid URI schemes",
+  "spec_section": "§ Catalog Entry (CE-1, CE-2)",
+  "test_ids": ["ID-P01", "ID-P02", "ID-P03"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agent:code-review",
+        "displayName": "Code Review Agent (URN identifier)",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/code-review/agent-card.json"
+      },
+      {
+        "identifier": "https://example.com/agents/summarizer",
+        "displayName": "Summarizer Agent (HTTPS URI identifier)",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/summarizer/agent-card.json"
+      },
+      {
+        "identifier": "did:web:example.com:agents:translator",
+        "displayName": "Translator Agent (DID identifier)",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/translator/agent-card.json"
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 3,
+    "conformance_level": "minimal",
+    "identifier_schemes": ["urn", "https", "did"]
+  }
+}

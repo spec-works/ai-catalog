@@ -1,0 +1,3 @@
+This is not valid JSON at all.
+It's just plain text content that a parser should reject.
+{"looks": "like JSON but isn't actually a complete valid document because of the text above}

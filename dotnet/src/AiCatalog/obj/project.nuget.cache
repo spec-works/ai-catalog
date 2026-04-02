@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "CElsyvjlLGA=",
+  "success": true,
+  "projectFilePath": "C:\\src\\github\\spec-works\\ai-catalog\\dotnet\\src\\AiCatalog\\AiCatalog.csproj",
+  "expectedPackageFiles": [
+    "C:\\.tools\\.nuget\\packages\\microsoft.build.tasks.git\\8.0.0\\microsoft.build.tasks.git.8.0.0.nupkg.sha512",
+    "C:\\.tools\\.nuget\\packages\\microsoft.sourcelink.common\\8.0.0\\microsoft.sourcelink.common.8.0.0.nupkg.sha512",
+    "C:\\.tools\\.nuget\\packages\\microsoft.sourcelink.github\\8.0.0\\microsoft.sourcelink.github.8.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

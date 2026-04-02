@@ -1,0 +1,26 @@
+{
+  "description": "Catalog with empty collections array — an empty collections array is valid",
+  "spec_section": "§ Collections, Edge Cases (EC-9)",
+  "test_ids": ["CO-P04"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Empty Collections Host"
+    },
+    "entries": [
+      {
+        "identifier": "urn:example:agents:hello",
+        "displayName": "Hello World Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/hello/agent-card.json"
+      }
+    ],
+    "collections": []
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 1,
+    "collection_count": 0,
+    "conformance_level": "discoverable"
+  }
+}

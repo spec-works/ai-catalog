@@ -1,0 +1,32 @@
+{
+  "description": "Three entries where two share the same (identifier, version) pair — the duplicate pair must be rejected even though a third entry has a different version",
+  "spec_section": "§ Multi-Version Entries (MV-2)",
+  "test_ids": ["MV-N03"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:mcp:tool-x",
+        "displayName": "Tool X v1",
+        "mediaType": "application/mcp-server+json",
+        "url": "https://mcp.example.com/tool-x/v1/manifest.json",
+        "version": "1.0.0"
+      },
+      {
+        "identifier": "urn:example:mcp:tool-x",
+        "displayName": "Tool X v2",
+        "mediaType": "application/mcp-server+json",
+        "url": "https://mcp.example.com/tool-x/v2/manifest.json",
+        "version": "2.0.0"
+      },
+      {
+        "identifier": "urn:example:mcp:tool-x",
+        "displayName": "Tool X v1 duplicate",
+        "mediaType": "application/mcp-server+json",
+        "url": "https://mcp.example.com/tool-x/v1-dup/manifest.json",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "expected_error": "duplicate (identifier, version) pair: ('urn:example:mcp:tool-x', '1.0.0')"
+}

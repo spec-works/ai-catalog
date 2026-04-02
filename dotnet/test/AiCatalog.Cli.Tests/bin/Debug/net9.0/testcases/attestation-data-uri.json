@@ -1,0 +1,41 @@
+{
+  "description": "Attestation with a Data URI instead of HTTPS URL — the spec explicitly allows Data URIs (RFC 2397) for attestation uri",
+  "spec_section": "§ Attestation Object (AT-2)",
+  "test_ids": ["AT-P03"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Secure AI Co."
+    },
+    "entries": [
+      {
+        "identifier": "urn:secure-ai:agents:compliance-checker",
+        "displayName": "Compliance Checker Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.secure-ai.com/compliance/agent-card.json",
+        "trustManifest": {
+          "identity": "urn:secure-ai:agents:compliance-checker",
+          "attestations": [
+            {
+              "type": "ISO-27001",
+              "uri": "data:application/jwt;base64,eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdWRpdG9yLmV4YW1wbGUuY29tIiwic3ViIjoiY29tcGxpYW5jZS1jaGVja2VyIiwiYXVkIjoic2VjdXJlLWFpLmNvbSIsImV4cCI6MTc1MTMyODAwMH0.signature_bytes_here",
+              "mediaType": "application/jwt",
+              "description": "ISO 27001 compliance attestation as signed JWT"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 1,
+    "conformance_level": "trusted",
+    "entries": [
+      {
+        "attestation_count": 1,
+        "attestation_uri_scheme": "data"
+      }
+    ]
+  }
+}

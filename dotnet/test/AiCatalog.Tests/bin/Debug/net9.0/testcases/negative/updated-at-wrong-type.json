@@ -1,0 +1,18 @@
+{
+  "description": "updatedAt as an integer (Unix epoch) instead of a string — updatedAt MUST be a RFC 3339 datetime string",
+  "spec_section": "§ Catalog Entry (CE-13), Edge Cases (EC-14)",
+  "test_ids": ["CE-N09"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:epoch-date",
+        "displayName": "Agent With Epoch Date",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/epoch/agent-card.json",
+        "updatedAt": 1711929600
+      }
+    ]
+  },
+  "expected_error": "updatedAt must be a string (RFC 3339 datetime), got number"
+}

@@ -1,0 +1,27 @@
+{
+  "description": "Catalog entry with inline content as a JSON boolean — inline accepts any JSON value",
+  "spec_section": "§ Catalog Entry (CE-8)",
+  "test_ids": ["CE-P06"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:ai:example:feature-flag",
+        "displayName": "Streaming Enabled Flag",
+        "mediaType": "application/json",
+        "inline": true
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 1,
+    "entries": [
+      {
+        "has_url": false,
+        "has_inline": true,
+        "inline_is_boolean": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "name": "spec-works-plugins",
+  "metadata": {
+    "description": "SpecWorks plugins for AI coding assistants",
+    "version": "1.0.0"
+  },
+  "owner": {
+    "name": "SpecWorks",
+    "url": "https://spec-works.github.io"
+  },
+  "plugins": [
+    {
+      "name": "markmyword",
+      "source": "plugins/markmyword",
+      "description": "Bidirectional Markdown and Word (.docx) conversion.",
+      "version": "1.0.0",
+      "skills": ["./skills/markmyword-cli"]
+    },
+    {
+      "name": "markmydeck",
+      "source": "plugins/markmydeck",
+      "description": "Markdown to PowerPoint (.pptx) conversion.",
+      "version": "0.1.0",
+      "skills": ["./skills/markmydeck-cli"]
+    },
+    {
+      "name": "xregistry-mcp",
+      "source": "plugins/xregistry-mcp",
+      "description": "xRegistry specification discovery and navigation MCP server.",
+      "version": "1.0.0",
+      "skills": ["./skills/xregistry-mcp"]
+    },
+    {
+      "name": "officetalk",
+      "source": "plugins/officetalk",
+      "description": "Apply deterministic operations to Office documents (.docx, .xlsx, .pptx) via OfficeTalk CLI.",
+      "version": "0.1.0",
+      "skills": ["./skills/officetalk-cli"]
+    },
+    {
+      "name": "a2a-ask",
+      "source": "plugins/a2a-ask",
+      "description": "Interact with remote A2A (Agent-to-Agent) protocol agents via CLI.",
+      "version": "1.0.0",
+      "skills": ["./skills/a2a-ask-cli"]
+    }
+  ]
+}

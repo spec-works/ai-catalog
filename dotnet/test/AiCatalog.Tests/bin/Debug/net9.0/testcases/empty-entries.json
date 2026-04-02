@@ -1,0 +1,15 @@
+{
+  "description": "Valid catalog with empty entries array — the entries array MAY be empty",
+  "spec_section": "§ Top-Level Structure (TL-3)",
+  "test_ids": ["TL-P03"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": []
+  },
+  "expected": {
+    "valid": true,
+    "spec_version": "1.0",
+    "entry_count": 0,
+    "conformance_level": "minimal"
+  }
+}

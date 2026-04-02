@@ -1,0 +1,50 @@
+{
+  "description": "MCP Registry represented as an AI Catalog — three MCP server entries with host info, mimicking the spec MCP mapping example",
+  "spec_section": "§ Mapping to MCP Registry",
+  "test_ids": ["EX-P06"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Litware MCP Registry",
+      "identifier": "did:web:mcp.litware.com",
+      "documentationUrl": "https://docs.litware.com/mcp-registry"
+    },
+    "entries": [
+      {
+        "identifier": "urn:litware:mcp:postgres-connector",
+        "displayName": "PostgreSQL Connector",
+        "description": "Read/write access to PostgreSQL databases via MCP tools",
+        "mediaType": "application/mcp-server+json",
+        "url": "https://mcp.litware.com/postgres/manifest.json",
+        "version": "3.1.0",
+        "tags": ["mcp", "database", "postgresql"],
+        "updatedAt": "2026-03-01T12:00:00Z"
+      },
+      {
+        "identifier": "urn:litware:mcp:redis-cache",
+        "displayName": "Redis Cache Server",
+        "description": "Fast key-value caching via MCP for AI agent contexts",
+        "mediaType": "application/mcp-server+json",
+        "url": "https://mcp.litware.com/redis/manifest.json",
+        "version": "1.2.0",
+        "tags": ["mcp", "cache", "redis"]
+      },
+      {
+        "identifier": "urn:litware:mcp:blob-storage",
+        "displayName": "Blob Storage Server",
+        "description": "Upload, download, and manage files in cloud blob storage",
+        "mediaType": "application/mcp-server+json",
+        "url": "https://mcp.litware.com/blob-storage/manifest.json",
+        "version": "2.0.0",
+        "tags": ["mcp", "storage", "files"]
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 3,
+    "conformance_level": "discoverable",
+    "has_host": true,
+    "all_media_types_equal": "application/mcp-server+json"
+  }
+}

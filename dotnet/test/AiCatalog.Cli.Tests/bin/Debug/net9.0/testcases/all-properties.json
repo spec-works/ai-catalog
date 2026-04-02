@@ -1,0 +1,164 @@
+{
+  "description": "Every possible field populated — comprehensive catalog with all optional properties on all objects",
+  "spec_section": "§ Top-Level Structure, § Catalog Entry, § Host Info, § Trust Manifest, § Publisher Object, § Attestation Object, § Provenance Link Object, § Trust Schema Object, § Collections",
+  "test_ids": ["TL-P02", "CE-P07", "HI-P02", "TM-P02", "PO-P02", "AT-P02", "PL-P02", "TS-P02", "CO-P02"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Fabrikam AI Services",
+      "identifier": "did:web:fabrikam.com",
+      "documentationUrl": "https://docs.fabrikam.com/ai-services",
+      "logoUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "trustManifest": {
+        "identity": "did:web:fabrikam.com",
+        "identityType": "did",
+        "trustSchema": {
+          "identifier": "urn:fabrikam:trust-schema:enterprise-v1",
+          "version": "1.0",
+          "governanceUri": "https://fabrikam.com/governance/ai-policy.pdf",
+          "verificationMethods": ["did", "x509", "dns-01"]
+        },
+        "attestations": [
+          {
+            "type": "SOC2-Type2",
+            "uri": "https://audits.fabrikam.com/soc2-2025.pdf",
+            "mediaType": "application/pdf",
+            "digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "size": 2048576,
+            "description": "SOC 2 Type II audit report for Fabrikam AI Services"
+          }
+        ],
+        "provenance": [
+          {
+            "relation": "publishedFrom",
+            "sourceId": "https://github.com/fabrikam/ai-catalog",
+            "sourceDigest": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+            "registryUri": "https://registry.fabrikam.com",
+            "statementUri": "https://fabrikam.com/provenance/statement.jsonl",
+            "signatureRef": "did:web:fabrikam.com#key-1"
+          }
+        ],
+        "privacyPolicyUrl": "https://fabrikam.com/privacy",
+        "termsOfServiceUrl": "https://fabrikam.com/terms",
+        "signature": "eyJhbGciOiJFUzI1NiJ9..SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        "metadata": {
+          "certifiedBy": "TrustAudit Inc.",
+          "certificationDate": "2025-12-01"
+        }
+      }
+    },
+    "entries": [
+      {
+        "identifier": "urn:fabrikam:agents:document-processor",
+        "displayName": "Document Processor Agent",
+        "description": "An enterprise-grade A2A agent that extracts, classifies, and summarizes documents using multi-modal AI models",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.fabrikam.com/doc-processor/agent-card.json",
+        "version": "2.4.1",
+        "tags": ["document-processing", "extraction", "classification", "summarization", "enterprise"],
+        "updatedAt": "2026-03-30T18:45:00Z",
+        "publisher": {
+          "identifier": "did:web:fabrikam.com",
+          "displayName": "Fabrikam Inc.",
+          "identityType": "did"
+        },
+        "trustManifest": {
+          "identity": "urn:fabrikam:agents:document-processor",
+          "identityType": "urn",
+          "trustSchema": {
+            "identifier": "urn:fabrikam:trust-schema:enterprise-v1",
+            "version": "1.0",
+            "governanceUri": "https://fabrikam.com/governance/ai-policy.pdf",
+            "verificationMethods": ["did", "dns-01"]
+          },
+          "attestations": [
+            {
+              "type": "SOC2-Type2",
+              "uri": "https://audits.fabrikam.com/soc2-2025.pdf",
+              "mediaType": "application/pdf",
+              "digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "size": 2048576,
+              "description": "SOC 2 Type II audit report"
+            },
+            {
+              "type": "HIPAA-Audit",
+              "uri": "data:application/jwt;base64,eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhdWRpdG9yIn0.signature",
+              "mediaType": "application/jwt",
+              "description": "HIPAA compliance attestation"
+            }
+          ],
+          "provenance": [
+            {
+              "relation": "materializedFrom",
+              "sourceId": "https://github.com/fabrikam/doc-processor-agent",
+              "sourceDigest": "sha256:b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c",
+              "registryUri": "https://registry.fabrikam.com"
+            },
+            {
+              "relation": "derivedFrom",
+              "sourceId": "urn:fabrikam:models:doc-extraction-v3",
+              "statementUri": "https://fabrikam.com/provenance/derivation.jsonl"
+            }
+          ],
+          "privacyPolicyUrl": "https://fabrikam.com/privacy/doc-processor",
+          "termsOfServiceUrl": "https://fabrikam.com/terms/doc-processor",
+          "signature": "eyJhbGciOiJFUzI1NiJ9..MEYCIQDvTmZ7BjPVZN0iGgdVw4Q0X1yjA2k6cC7T_U0VfwIhAJ",
+          "metadata": {
+            "lastAuditDate": "2026-01-15",
+            "complianceRegions": ["us-east", "eu-west"]
+          }
+        },
+        "metadata": {
+          "languages": ["en", "fr", "de", "ja"],
+          "maxDocumentSizeMb": 50,
+          "supportedFormats": ["pdf", "docx", "pptx", "xlsx", "txt"]
+        }
+      }
+    ],
+    "collections": [
+      {
+        "displayName": "Fabrikam MCP Integrations",
+        "url": "https://catalogs.fabrikam.com/mcp-servers.json",
+        "description": "Model Context Protocol server integrations maintained by the Fabrikam AI team",
+        "tags": ["mcp", "integrations", "enterprise"]
+      }
+    ],
+    "metadata": {
+      "generatedAt": "2026-04-01T00:00:00Z",
+      "generator": "Fabrikam Catalog Builder v2.0",
+      "x-internal-team": "ai-platform"
+    }
+  },
+  "expected": {
+    "valid": true,
+    "spec_version": "1.0",
+    "entry_count": 1,
+    "collection_count": 1,
+    "conformance_level": "trusted",
+    "has_host": true,
+    "has_metadata": true,
+    "host": {
+      "display_name": "Fabrikam AI Services",
+      "has_identifier": true,
+      "has_documentation_url": true,
+      "has_logo_url": true,
+      "has_trust_manifest": true
+    },
+    "entries": [
+      {
+        "identifier": "urn:fabrikam:agents:document-processor",
+        "has_version": true,
+        "has_description": true,
+        "has_tags": true,
+        "has_updated_at": true,
+        "has_publisher": true,
+        "has_trust_manifest": true,
+        "has_metadata": true,
+        "trust_manifest_identity_matches": true,
+        "publisher_has_identity_type": true,
+        "attestation_count": 2,
+        "provenance_count": 2
+      }
+    ]
+  }
+}

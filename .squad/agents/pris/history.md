@@ -90,3 +90,20 @@ Your work has shipped. Orchestration log written to `.squad/orchestration-log/20
 ## CLI Phase Complete (2026-04-02T11:16)
 
 Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific inbox. Both toolchains ready for integration.
+
+### Integration Tests with Real Marketplace Fixtures
+
+**Fixtures created:** `testcases/integration/spec-works-plugins-marketplace.json` (5 plugins) and `testcases/integration/work-iq-marketplace.json` (3 plugins). Shared with .NET at `testcases/integration/`.
+
+**Test file:** `python/tests/test_integration.py` — 40 tests across 7 test classes:
+- `TestConversionProducesValidCatalog` (4): Conversion returns AiCatalog, serializes to valid JSON
+- `TestEntryCounts` (2): 5 entries for spec-works, 3 for work-iq
+- `TestFieldFidelity` (14): Spot-checks identifiers, names, descriptions, versions, media types, URN prefixes
+- `TestConformanceValidation` (6): MINIMAL conformance (no host), expected url/inline validation errors
+- `TestRoundTrip` (5): serialize→parse fidelity, stable conformance, double round-trip identical JSON
+- `TestCliConvertMarketplace` (6): CLI stdout, file output, parse-back, entry spot-checks via CliRunner
+- `TestConvertMarketplaceDict` (3): Dict-based conversion, file/dict equivalence
+
+**Total suite:** 306 tests (266 existing + 40 integration), ruff clean.
+
+**Key finding:** Marketplace plugins lack `manifest_url`, so converted entries have no `url`/`inline`. Validator correctly reports one content error per entry. This is expected — the marketplace format doesn't carry artifact URLs.

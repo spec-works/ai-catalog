@@ -1,0 +1,25 @@
+{
+  "description": "Two entries with the same identifier AND same version — the (identifier, version) pair MUST be unique",
+  "spec_section": "§ Multi-Version Entries (MV-2)",
+  "test_ids": ["MV-N01"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:mcp:github-connector",
+        "displayName": "GitHub Connector (first)",
+        "mediaType": "application/mcp-server+json",
+        "url": "https://mcp.example.com/github1/manifest.json",
+        "version": "1.0.0"
+      },
+      {
+        "identifier": "urn:example:mcp:github-connector",
+        "displayName": "GitHub Connector (duplicate)",
+        "mediaType": "application/mcp-server+json",
+        "url": "https://mcp.example.com/github2/manifest.json",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "expected_error": "duplicate (identifier, version) pair: ('urn:example:mcp:github-connector', '1.0.0')"
+}

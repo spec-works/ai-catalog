@@ -1,0 +1,29 @@
+{
+  "description": "Attestation missing required uri field",
+  "spec_section": "§ Attestation Object (AT-2)",
+  "test_ids": ["AT-N02"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Test Host"
+    },
+    "entries": [
+      {
+        "identifier": "urn:example:agents:missing-att-uri",
+        "displayName": "Agent With Bad Attestation",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/bad-att/agent-card.json",
+        "trustManifest": {
+          "identity": "urn:example:agents:missing-att-uri",
+          "attestations": [
+            {
+              "type": "SOC2-Type2",
+              "mediaType": "application/pdf"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "expected_error": "missing required field: uri on attestation[0]"
+}

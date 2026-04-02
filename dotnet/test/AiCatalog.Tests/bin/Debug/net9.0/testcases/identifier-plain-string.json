@@ -1,0 +1,22 @@
+{
+  "description": "Plain string identifier without a URI scheme — parses successfully but validation SHOULD warn per CE-2",
+  "spec_section": "§ Catalog Entry (CE-2)",
+  "test_ids": ["ID-W01"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "my-custom-agent",
+        "displayName": "Custom Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/custom/agent-card.json"
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 1,
+    "conformance_level": "minimal",
+    "warnings": ["identifier SHOULD be a URN or URI"]
+  }
+}

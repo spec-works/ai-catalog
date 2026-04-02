@@ -94,3 +94,27 @@ Your work has shipped. Orchestration log written to `.squad/orchestration-log/20
 ## CLI Phase Complete (2026-04-02T11:16)
 
 Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific inbox. Both toolchains ready for integration.
+
+### 2026-04-02: Integration Tests with Real Marketplace Fixtures
+
+**Delivered:** 30 new integration tests using real-world marketplace.json files from spec-works/plugins and microsoft/work-iq repos. All 180 tests pass (138 original + 42 CLI total).
+
+**Test fixtures added:**
+- `testcases/integration/spec-works-plugins-marketplace.json` — 5 copilot plugins (markmyword, markmydeck, xregistry-mcp, officetalk, a2a-ask)
+- `testcases/integration/work-iq-marketplace.json` — 3 copilot plugins (workiq, microsoft-365-agents-toolkit with 3 skills, workiq-productivity with 9 skills)
+
+**Converter extended:** `MarketplaceConverter` now auto-detects two marketplace formats:
+- **Claude format:** plugins with `display_name`, `manifest_url`, `publisher` (existing)
+- **Copilot format:** plugins with `source`, `skills[]`, plus root-level `owner` (new)
+
+**Key mapping rules for copilot format:**
+- `identifier`: `urn:marketplace:{marketplace-name}:{plugin-name}`
+- `displayName`: plugin.name
+- `url`: plugin.source
+- `mediaType`: `application/vnd.copilot.plugin+json`
+- `tags`: leaf names extracted from skills[] paths
+- `publisher`: derived from root `owner` (URL used as identifier, or synthetic URN `urn:marketplace:owner:{name}` when no URL)
+
+**Learning:** Validator requires non-empty `publisher.identifier`. When marketplace owner has no URL, converter must generate a synthetic URN identifier to pass conformance validation.
+
+**Integration test file:** `dotnet/test/AiCatalog.Cli.Tests/MarketplaceIntegrationTests.cs` — covers library conversion, CLI end-to-end file I/O, round-trip serialize→parse, conformance validation, stream-based conversion.

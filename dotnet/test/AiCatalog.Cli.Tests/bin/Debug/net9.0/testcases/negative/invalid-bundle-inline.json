@@ -1,0 +1,20 @@
+{
+  "description": "Bundle entry with inline content that is not a valid AI Catalog — the inline catalog is missing specVersion and entries",
+  "spec_section": "§ Organizing Catalogs — Bundles (BU-1), Edge Cases (EC-8)",
+  "test_ids": ["BN-N01"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:bundles:invalid-bundle",
+        "displayName": "Invalid Bundle",
+        "mediaType": "application/ai-catalog+json",
+        "inline": {
+          "name": "This is not a valid catalog",
+          "tools": ["tool-a", "tool-b"]
+        }
+      }
+    ]
+  },
+  "expected_error": "inline catalog for entry[0] is not a valid AI Catalog: missing required field specVersion"
+}
