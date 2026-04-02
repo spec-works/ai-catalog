@@ -1,0 +1,44 @@
+{
+  "agents": {
+    "deckard": {
+      "persistent_name": "Deckard",
+      "universe": "Blade Runner",
+      "role": "Lead",
+      "created_at": "2026-04-02T01:31:00.000Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "tyrell": {
+      "persistent_name": "Tyrell",
+      "universe": "Blade Runner",
+      "role": "Spec Reader",
+      "created_at": "2026-04-02T01:31:00.000Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "roy": {
+      "persistent_name": "Roy",
+      "universe": "Blade Runner",
+      "role": ".NET Dev",
+      "created_at": "2026-04-02T01:31:00.000Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "pris": {
+      "persistent_name": "Pris",
+      "universe": "Blade Runner",
+      "role": "Python Dev",
+      "created_at": "2026-04-02T01:31:00.000Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "leon": {
+      "persistent_name": "Leon",
+      "universe": "Blade Runner",
+      "role": "Test Author",
+      "created_at": "2026-04-02T01:31:00.000Z",
+      "legacy_named": false,
+      "status": "active"
+    }
+  }
+}
