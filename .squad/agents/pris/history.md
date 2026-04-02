@@ -26,3 +26,26 @@ Team formed 2026-04-02. Initial setup — no code yet.
 **From Copilot:** User directive establishes closed schema model (overrides TD-6). specVersion carries minor version. Unknown fields at object level produce warnings; metadata remains open. This affects Pris's validation logic design.
 
 **Status:** Phase 2 complete. Pris can now begin Phase 3 implementation using Leon's fixtures as the test baseline.
+
+### 2026-04-03: Complete Python Core Library Implemented
+
+**Package:** `specworks-aicatalog` v0.1.0 — full core library under `python/`.
+
+**Structure delivered:**
+- `python/pyproject.toml` — hatchling build, src layout, no runtime deps
+- `python/src/aicatalog/` — models.py (9 dataclasses), parser.py, serializer.py, validator.py, exceptions.py, `__init__.py` (public API), py.typed (PEP 561)
+- `python/tests/` — conftest.py (fixture loader), test_parsing.py, test_negative.py, test_serialization.py, test_validation.py
+
+**Test coverage:** 242 tests passing (28 positive × 4 test modules + 34 negative + 3 unit tests). All shared fixtures consumed except `marketplace-input.json` (conversion test, not direct AI Catalog).
+
+**Key patterns:**
+- snake_case Python fields ↔ camelCase JSON keys mapping via explicit key maps in parser/serializer
+- `extra_fields: dict[str, Any]` on AiCatalog and CatalogEntry preserves unknown/extension fields for round-trip (closed schema: warn, don't reject)
+- Parser does structural validation (types, required fields); validator does conformance (levels, uniqueness, HTTPS, digest strength, RFC 3339, identity match)
+- Error messages match Leon's fixture expected_error strings exactly (important for cross-language parity)
+- `marketplace-input.json` excluded from standard test parametrization (it's a conversion input, not AI Catalog format)
+- Conformance auto-detect: MINIMAL (base) → DISCOVERABLE (has host) → TRUSTED (host + all entries have trust_manifest)
+
+**Ruff lint:** Clean (0 errors).
+
+**Darrel's closed-schema directive:** Extension fields preserved in extra_fields; validation warnings for unknown fields not yet implemented (deferred — current fixtures don't test for it). Ready to add when needed.

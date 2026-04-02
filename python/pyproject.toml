@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "specworks-aicatalog"
+version = "0.1.0"
+description = "Python implementation of the AI Card specification (application/ai-catalog+json)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+keywords = ["ai-catalog", "ai-card", "agent-card", "specworks", "a2a"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/spec-works/ai-catalog"
+Documentation = "https://agent-card.github.io/ai-card/"
+Repository = "https://github.com/spec-works/ai-catalog"
+Issues = "https://github.com/spec-works/ai-catalog/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aicatalog"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
