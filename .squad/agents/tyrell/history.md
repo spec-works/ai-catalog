@@ -73,3 +73,44 @@ Team formed 2026-04-02. Initial setup — no code yet.
 **Used by:** Feedback document consumed as input by Scribe for orchestration logging and cross-team history updates.
 
 **Next:** Feedback submitted to spec authors; complements Deckard's architecture feedback for forward compatibility planning.
+
+### 2026-04-17 — Spec Delta Analysis for PR #33
+
+**Output:** `docs/spec-delta-pr33.md` — comprehensive delta report comparing PR #33 changes against our 80+ requirements baseline.
+
+**Key spec changes in PR #33 (from 2026-04-02 meeting decisions):**
+1. **`collections` removed entirely** — CollectionRef type deleted. Hierarchy now achieved exclusively through nested catalog entries (entries with mediaType `application/ai-catalog+json`). Requirements CR-1 through CR-7 are obsolete. EC-9 (collection edge cases) deleted.
+2. **`inline` renamed to `data`** — CatalogEntry field rename. CDDL changes from `(url: text // inline: any)` to `(url: text // data: any)`. All examples updated. TD-1 now applies to `data: null`.
+3. **Nesting depth limit 8 → 4** — RECOMMENDED max depth changed from 8 to 4 in both organizing catalogs and security sections. Per upstream ADR-0001.
+4. **"Bundle" terminology eliminated** — no longer a distinct concept. Just "nested catalog entries." Multi-artifact packaging described as entry with publisher containing nested catalog.
+5. **New normative sections:** Version Handling (Major.Minor format, compatibility rules, MUST ignore unrecognized fields within same major), Metadata Extensibility (key naming, empty key rejection), expanded Security Considerations (4-layer trust model, circular reference detection, embedded content safety).
+6. **Media type updates in examples:** `application/mcp-server+json` → `application/mcp-server-card+json`, `application/ai-skill` → `application/agentskill+zip`.
+
+**Decisions impacted:**
+- TD-2 (specVersion format) now has normative Major.Minor definition — stricter than before.
+- TD-6 (closed model) in tension with new VH-2 "Consumers MUST ignore unrecognized fields" — flagged for team decision.
+- TD-1 updated: `data: null` instead of `inline: null`.
+- New decision needed: backward compatibility for `inline` → `data` migration.
+
+**Requirements delta:** ~80 → ~85 (+5 net). 8 collection reqs deleted, ~13 version/metadata/security reqs added.
+**Test case delta:** 108 → ~115 (+7 net). 8 collection tests deleted, ~15 new tests added.
+**CDDL types:** 9 → 8 (CollectionRef deleted).
+
+### 2026-04-25T17:30 — Spec PR #33 Update Complete
+
+**Output:** Spec PR #33 delta analysis finalized. Decisions flagged for team review and subsequently resolved.
+
+**What happened:** Tyrell completed comprehensive delta analysis. Two decisions required:
+1. TD-6 tension: New VH-2 "MUST ignore unrecognized fields" conflicts with closed-model warnings
+2. Backward compatibility: Accept `inline` as deprecated alias?
+
+**User decision (2026-04-25T13:30):**
+1. Adopt spec's MUST-ignore rule (VH-2). Supersede TD-6. Drop closed-model warnings.
+2. Clean break on `inline`→`data`. No deprecated alias. Only `data` is valid.
+
+**Consequence:** Roy and Pris have explicit direction for implementation. Leon's fixture updates (clean break) aligned with user decision. Both agents proceeded to implementation phase successfully.
+
+**Test results:** Roy (210 tests), Pris (355 tests) — all passing.
+
+**Orchestration log:** `.squad/orchestration-log/2026-04-25T17-30-tyrell.md`
+

@@ -303,6 +303,70 @@ When `owner` has no `url`, converter generates synthetic `urn:marketplace:owner:
 
 **Consequence:** Cross-language integration test suite; both toolchains can validate real-world plugin conversion end-to-end.
 
+---
+
+### Spec PR #33 Interpretation — Tyrell (2026-04-17, Approved 2026-04-25)
+
+#### PR #33 Delta: Breaking Changes & New Normative Sections
+
+**Context:** PR #33 to the AI Card spec introduces significant changes. Analysis in `docs/spec-delta-pr33.md`.
+
+**Breaking changes:**
+1. Collections concept deleted entirely — CollectionRef type, CR-1 through CR-7 requirements obsolete
+2. `inline` field renamed to `data` on CatalogEntry
+3. Nesting depth limit reduced from 8 → 4
+
+**New normative sections:**
+1. Version Handling (VH-1 through VH-6): Major.Minor format, forward compatibility, MUST-ignore unrecognized fields
+2. Metadata Extensibility (ME-1, ME-2): Key naming rules, empty key rejection
+3. Expanded Security: 4-layer trust model, circular reference detection, embedded content safety
+
+**Requirements delta:** ~80 → ~85 (+5 net). 8 collection requirements deleted, ~13 version/metadata/security requirements added.
+
+**Test case delta:** 108 → ~115 (+7 net). 8 collection tests deleted, ~15 new tests added.
+
+---
+
+### Copilot Directives — User (2026-04-25T13:30, Spec PR #33 Update)
+
+#### Decision 1: Adopt Spec's MUST-ignore Rule (VH-2), Superseding TD-6
+
+**Decision:** Consumers MUST ignore unrecognized fields within the same major version for forward compatibility.
+
+**Override:** Supersedes TD-6 (closed model with warnings). Drop closed-model warnings for unknown top-level fields. Metadata remains the designated extension point.
+
+**Why:** User decision aligning with spec normative text (VH-2). Simpler, more flexible forward compatibility than closed-model approach. Minor version bumps add optional fields; older consumers gracefully ignore unknown fields.
+
+**Impact:** Both .NET and Python implementations: unknown fields silently ignored, preserved in extension storage for round-trip, no validation warnings.
+
+---
+
+#### Decision 2: Clean Break on `inline` → `data` Rename
+
+**Decision:** Do NOT accept `inline` as a deprecated alias during transition. Only `data` is valid.
+
+**Why:** User decision for explicit breaking change rather than gradual migration. Clean break simplifies implementation and forces coordinated version bump communication.
+
+**Impact:** Existing catalogs with `inline` will fail validation. Parser rejects `inline` field entirely. Serializer emits only `data`. Coordinated release required across .NET and Python.
+
+---
+
+### Fixture Design Decisions for PR #33 — Leon (2026-04-17, Approved 2026-04-25)
+
+#### Clean Break on `inline` → `data` (User Decision Affirmed)
+
+**Decision:** All 74 fixtures use only `data` field. No fixtures accept `inline` as deprecated alias.
+
+**Rationale:** User binding decision (approved 2026-04-25) states "clean break on inline → data. Do NOT accept inline as deprecated alias. Only data is valid."
+
+**Impact:**
+- Existing catalogs with `inline` will fail validation with new implementations
+- Roy and Pris implementations reject `inline` field entirely (not just warn)
+- Coordinated release needed across .NET and Python libraries
+- Test fixtures serve as the contract: only `data` is valid
+
+**Consequence:** 4 collection-related fixtures deleted, 22+ files updated from `inline` to `data`, 14 new fixtures added for version handling and other PR #33 changes. Final count: 74 fixtures (32 positive, 40 negative, 2 marketplace).
+
 ## Governance
 
 - All meaningful changes require team consensus

@@ -136,5 +136,74 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 **Linting:** ruff clean (0 errors)
 
 **Backward compatibility:** All 266 original tests pass; no existing behavior modified.
-
+
 **Orchestration log:** `.squad/orchestration-log/2026-04-02T11-50-pris.md`
+
+### PR #33 Spec Delta Update
+
+**Spec changes applied:** PR #33 ("Updates based on discussions during last meeting") — 4 breaking changes + new normative content.
+
+**Model changes:**
+- Deleted `CollectionReference` dataclass and all collection-related code (removed from spec)
+- Renamed `inline` field → `data` on `CatalogEntry` (clean break, no backward compat per user decision)
+- Removed `collections` list from `AiCatalog`
+- Public types reduced from 9 to 8
+
+**Parser changes:**
+- Reads `"data"` instead of `"inline"` — does NOT accept `"inline"` as alias (user decision #2)
+- Added `specVersion` Major.Minor format validation at parse time (VH-1 through VH-6)
+- Rejects unsupported major versions (>1) with informative error
+- Accepts any minor version within major version 1
+- Removed collection parsing, `_COLLECTION_KEYS`, `_parse_collection()`
+- Unknown fields silently ignored per VH-2 MUST-ignore rule (user decision #1)
+
+**Serializer changes:**
+- Emits `"data"` instead of `"inline"`
+- Removed collection serialization (`_serialize_collection` is now a stub)
+
+**Validator changes:**
+- `url`/`data` mutual exclusivity (was `url`/`inline`)
+- Nesting depth limit changed from 8 → 4 (`DEFAULT_MAX_NESTING_DEPTH = 4`)
+- Added recursive nesting depth validation with proper depth counting (root=1)
+- Added metadata empty-key validation (ME-2) on catalog, entry, and trust manifest metadata
+- Removed collection URL HTTPS check
+- Renamed "bundle" terminology → "nested catalog entry" throughout
+
+**CLI changes:**
+- `_install_skill` now reads `entry.data` instead of `entry.inline`
+- MCP auto-detection expanded: added `"mcp-server-card"` to indicators
+- Error message updated: "no url or data content" instead of "no url or inline content"
+
+**Test fixtures updated:** Leon's fixtures already renamed/updated. Additional fixture updates for `inline`→`data`, collections removal, version handling, metadata validation.
+
+**Test results:** 355 tests passing (up from 306). New tests: version handling (VH-P/N), metadata validation (ME-N01), url/data exclusivity. Ruff clean (0 errors).
+
+**Key decisions followed:**
+- User decision #1: Adopted MUST-ignore for unknown fields (VH-2). Dropped closed-model warnings.
+- User decision #2: Clean break on `inline`→`data`. No deprecated alias.
+
+### 2026-04-25T17:30 — PR #33 Update Complete
+
+**Delivered:** All Python code aligned with PR #33 spec changes. All 355 tests passing; ruff clean (0 errors).
+
+**Breaking changes applied (clean break per user decision):**
+- `CollectionReference` dataclass deleted
+- `inline` field → `data` on `CatalogEntry`
+- Parser rejects `inline` field entirely
+- Nesting depth 8 → 4
+- Unknown fields silently ignored (MUST-ignore per VH-2)
+
+**New validation rules:**
+- specVersion Major.Minor format (VH-1 through VH-6)
+- Metadata empty-key rejection (ME-2)
+
+**CLI updates:**
+- Error messages updated for data content
+- Auto-detect expanded for `mcp-server-card`
+
+**Parity with Roy:** Identical error messages, validation logic, CLI behavior. Both toolchains tested against all 74 shared fixtures.
+
+**Orchestration log:** `.squad/orchestration-log/2026-04-25T17-30-pris.md`
+
+**Status:** Ready for production release via PyPI. Coordinated breaking change with Roy (.NET). Both implementations follow user directives identically.
+

@@ -202,3 +202,27 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 - Version error messages: differentiate between "has X.Y structure but non-integer components" vs "wrong format entirely" for better fixture error matching
 - Semantic error matching in NegativeParsingTests requires shared key phrases between actual and expected errors; more specific error messages reduce matching fragility
 - `[GeneratedRegex]` requires `partial class` declaration — applied to both Parser and Validator
+
+### 2026-04-25T17:30 — PR #33 Update Complete
+
+**Delivered:** All .NET code aligned with PR #33 spec changes. All 210 tests passing (168 library + 42 CLI).
+
+**Breaking changes applied (clean break per user decision):**
+- `CollectionReference` deleted
+- `CatalogEntry.Inline` → `CatalogEntry.Data`
+- Parser rejects `inline` field entirely
+- Nesting depth 8 → 4
+- Unknown fields silently ignored (MUST-ignore per VH-2)
+
+**New validation rules:**
+- specVersion Major.Minor format (VH-1 through VH-6)
+- Metadata empty-key rejection (ME-2)
+
+**CLI updates:**
+- Media type constants updated
+- Auto-detect expanded for `mcp-server-card`
+
+**Orchestration log:** `.squad/orchestration-log/2026-04-25T17-30-roy.md`
+
+**Status:** Ready for production release. Coordinated breaking change with Pris (Python). Both toolchains implemented identically per user directives.
+
