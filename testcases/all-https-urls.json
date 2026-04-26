@@ -22,12 +22,6 @@
           "termsOfServiceUrl": "https://secure-corp.com/terms"
         }
       }
-    ],
-    "collections": [
-      {
-        "displayName": "Internal Tools",
-        "url": "https://catalogs.secure-corp.com/internal.json"
-      }
     ]
   },
   "expected": {

@@ -1,5 +1,5 @@
 {
-  "description": "Catalog entry with both url AND inline — exactly one is required, not both",
+  "description": "Catalog entry with both url AND data — exactly one is required, not both",
   "spec_section": "§ Catalog Entry (CE-5)",
   "test_ids": ["CE-N04"],
   "input": {
@@ -10,12 +10,12 @@
         "displayName": "Agent With Both Content Types",
         "mediaType": "application/a2a-agent-card+json",
         "url": "https://agents.example.com/both/agent-card.json",
-        "inline": {
+        "data": {
           "name": "Both Content Agent",
-          "description": "This entry incorrectly provides both url and inline"
+          "description": "This entry incorrectly provides both url and data"
         }
       }
     ]
   },
-  "expected_error": "entry[0] must have exactly one of 'url' or 'inline', found both"
+  "expected_error": "entry[0] must have exactly one of 'url' or 'data', found both"
 }

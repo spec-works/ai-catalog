@@ -1,5 +1,5 @@
 {
-  "description": "Expected AI Catalog output from converting marketplace-input.json — each marketplace plugin becomes a catalog entry",
+  "description": "Expected AI Catalog output from converting marketplace-input.json — each marketplace plugin becomes a nested ai-catalog entry",
   "spec_section": "§ Mapping to Claude Code Plugins Marketplace",
   "test_ids": ["EX-P08"],
   "input": {
@@ -9,7 +9,7 @@
         "identifier": "urn:claude:plugins:web-search",
         "displayName": "Web Search",
         "description": "Search the web and retrieve current information from websites and online sources",
-        "mediaType": "application/vnd.claude.code-plugin+json",
+        "mediaType": "application/ai-catalog+json",
         "url": "https://plugins.anthropic.com/web-search/manifest.json",
         "version": "1.4.0",
         "tags": ["search", "web", "information-retrieval"],
@@ -23,10 +23,9 @@
         "identifier": "urn:claude:plugins:github-integration",
         "displayName": "GitHub Integration",
         "description": "Interact with GitHub repositories, pull requests, issues, and code reviews",
-        "mediaType": "application/vnd.claude.code-plugin+json",
+        "mediaType": "application/ai-catalog+json",
         "url": "https://plugins.anthropic.com/github/manifest.json",
         "version": "2.1.0",
-        "tags": ["developer-tools", "vcs", "code-review"],
         "updatedAt": "2026-03-20T14:30:00Z",
         "publisher": {
           "identifier": "https://github.com",
@@ -37,7 +36,7 @@
         "identifier": "urn:claude:plugins:slack-connector",
         "displayName": "Slack Connector",
         "description": "Read and send messages, manage channels, and interact with Slack workspaces",
-        "mediaType": "application/vnd.claude.code-plugin+json",
+        "mediaType": "application/ai-catalog+json",
         "url": "https://plugins.anthropic.com/slack/manifest.json",
         "version": "1.0.2",
         "tags": ["communication", "messaging"],
@@ -53,7 +52,7 @@
     "spec_version": "1.0",
     "entry_count": 3,
     "conformance_level": "minimal",
-    "all_media_types_equal": "application/vnd.claude.code-plugin+json",
+    "all_media_types_equal": "application/ai-catalog+json",
     "all_entries_have_publisher": true,
     "mapping_rules": {
       "plugin_name_to_identifier": "urn:claude:plugins:{name}",
@@ -65,7 +64,7 @@
       "updated_at_to_updated_at": "camelCase conversion",
       "publisher_name_to_publisher_display_name": "direct mapping",
       "publisher_url_to_publisher_identifier": "direct mapping",
-      "media_type": "application/vnd.claude.code-plugin+json"
+      "media_type": "application/ai-catalog+json"
     }
   }
 }

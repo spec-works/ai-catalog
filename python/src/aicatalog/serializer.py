@@ -13,7 +13,6 @@ from .models import (
     AiCatalog,
     Attestation,
     CatalogEntry,
-    CollectionReference,
     HostInfo,
     ProvenanceLink,
     Publisher,
@@ -117,16 +116,9 @@ def _serialize_host(host: HostInfo) -> dict[str, Any]:
     return result
 
 
-def _serialize_collection(col: CollectionReference) -> dict[str, Any]:
-    result: dict[str, Any] = {
-        "displayName": col.display_name,
-        "url": col.url,
-    }
-    if col.description is not None:
-        result["description"] = col.description
-    if col.tags:
-        result["tags"] = col.tags
-    return result
+def _serialize_collection(col: Any) -> dict[str, Any]:
+    """Legacy stub — collections removed in spec PR #33."""
+    raise NotImplementedError("Collections have been removed from the spec")
 
 
 def _serialize_entry(entry: CatalogEntry) -> dict[str, Any]:
@@ -137,8 +129,8 @@ def _serialize_entry(entry: CatalogEntry) -> dict[str, Any]:
     }
     if entry.url is not None:
         result["url"] = entry.url
-    if entry.inline is not None:
-        result["inline"] = entry.inline
+    if entry.data is not None:
+        result["data"] = entry.data
     if entry.version is not None:
         result["version"] = entry.version
     if entry.description is not None:
@@ -171,8 +163,6 @@ def serialize_to_dict(catalog: AiCatalog) -> dict[str, Any]:
     if catalog.host is not None:
         result["host"] = _serialize_host(catalog.host)
     result["entries"] = [_serialize_entry(e) for e in catalog.entries]
-    if catalog.collections:
-        result["collections"] = [_serialize_collection(c) for c in catalog.collections]
     if catalog.metadata is not None:
         result["metadata"] = catalog.metadata
     # Preserve extension fields

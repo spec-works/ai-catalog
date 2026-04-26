@@ -1,0 +1,17 @@
+{
+  "description": "Catalog with specVersion 2.0 (unsupported major version) — consumers SHOULD reject with informative error",
+  "spec_section": "§ Version Handling (VH-3, VH-6)",
+  "test_ids": ["VH-N01"],
+  "input": {
+    "specVersion": "2.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:future-agent",
+        "displayName": "Future Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/future/agent-card.json"
+      }
+    ]
+  },
+  "expected_error": "unsupported specVersion major version: 2 (this implementation supports major version 1)"
+}

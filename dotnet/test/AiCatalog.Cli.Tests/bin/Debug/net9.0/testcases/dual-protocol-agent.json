@@ -1,0 +1,48 @@
+{
+  "description": "Dual-protocol agent entry with nested catalog in data field — agent supports both MCP and A2A protocols via separate cards",
+  "spec_section": "§ Example: Dual-Protocol Agent",
+  "test_ids": ["EX-P03"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "https://agents.example.com/data-analyst",
+        "displayName": "Data Analyst Agent",
+        "description": "Multi-protocol AI agent supporting both MCP and A2A communication",
+        "mediaType": "application/ai-catalog+json",
+        "version": "2.1.0",
+        "data": {
+          "specVersion": "1.0",
+          "entries": [
+            {
+              "identifier": "https://agents.example.com/data-analyst#mcp",
+              "displayName": "Data Analyst (MCP Server)",
+              "mediaType": "application/mcp-server-card+json",
+              "url": "https://agents.example.com/data-analyst/mcp-card.json"
+            },
+            {
+              "identifier": "https://agents.example.com/data-analyst#a2a",
+              "displayName": "Data Analyst (A2A Agent)",
+              "mediaType": "application/a2a-agent-card+json",
+              "url": "https://agents.example.com/data-analyst/a2a-card.json"
+            }
+          ]
+        },
+        "tags": ["analytics", "multi-protocol"]
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 1,
+    "entries": [
+      {
+        "identifier": "https://agents.example.com/data-analyst",
+        "is_nested_catalog": true,
+        "nested_entry_count": 2,
+        "nested_has_mcp": true,
+        "nested_has_a2a": true
+      }
+    ]
+  }
+}

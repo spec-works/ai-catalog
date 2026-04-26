@@ -1,5 +1,5 @@
 {
-  "description": "Catalog with entries of diverse media types — the catalog is artifact-agnostic and does not validate inline content against mediaType",
+  "description": "Catalog with entries of diverse media types — the catalog is artifact-agnostic and does not validate data content against mediaType",
   "spec_section": "§ Catalog Entry (CE-4, CE-8), § Design Goals (DG-1)",
   "test_ids": ["MX-P02", "MX-P03"],
   "input": {
@@ -15,7 +15,7 @@
       {
         "identifier": "urn:example:mcp:slack-connector",
         "displayName": "Slack Connector MCP Server",
-        "mediaType": "application/mcp-server+json",
+        "mediaType": "application/mcp-server-card+json",
         "url": "https://mcp.example.com/slack/manifest.json",
         "tags": ["mcp", "messaging"]
       },
@@ -35,11 +35,11 @@
         "tags": ["dataset", "training"]
       },
       {
-        "identifier": "urn:example:bundles:ml-ops-toolkit",
+        "identifier": "urn:example:catalogs:ml-ops-toolkit",
         "displayName": "ML-Ops Toolkit",
         "mediaType": "application/ai-catalog+json",
         "url": "https://catalogs.example.com/ml-ops.json",
-        "tags": ["bundle", "ml-ops"]
+        "tags": ["catalog", "ml-ops"]
       }
     ]
   },
@@ -49,7 +49,7 @@
     "conformance_level": "minimal",
     "media_types_present": [
       "application/a2a-agent-card+json",
-      "application/mcp-server+json",
+      "application/mcp-server-card+json",
       "application/vnd.claude.code-plugin+json",
       "application/parquet",
       "application/ai-catalog+json"

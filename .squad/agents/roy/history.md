@@ -226,3 +226,37 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 
 **Status:** Ready for production release. Coordinated breaking change with Pris (Python). Both toolchains implemented identically per user directives.
 
+### 2026-07-18: Generated GitHub Actions Workflow for spec-works.github.io
+
+**Delivered:** Updated `docs.yml` workflow at `generated/spec-works.github.io/docs.yml` that integrates ai-catalog generation into the existing DocFX build pipeline for the spec-works.github.io site.
+
+**Key decisions:**
+- `.well-known/ai-catalog.json` path for catalog serving (standard well-known URI pattern)
+- Multi-version .NET setup (`9.0.x` for CLI + `10.0.x` for DocFX) via `setup-dotnet` multi-line version syntax
+- `repository_dispatch` with `plugins-updated` event type for cross-repo rebuild triggers
+- Sparse checkout for both `spec-works/plugins` and `spec-works/ai-catalog` to minimize clone size
+- Separate `dotnet build` + `dotnet run --no-build` steps for clarity and caching potential
+- GitHub Pages default `application/json` Content-Type is sufficient; no custom `_headers` needed
+- Checkout paths use `_` prefix (`_plugins`, `_ai-catalog`) to avoid collisions with site content
+
+**Files created:**
+- `generated/spec-works.github.io/docs.yml` — the workflow to copy into the target repo
+- `generated/spec-works.github.io/README.md` — explains what changed and how to apply
+
+### 2026-07-18: Plugin-as-Catalog Refactor — MarketplaceConverter
+
+**Directive from Darrel:** A plugin is NOT represented by a plugin-specific media type. A plugin is an inline or referenced ai-catalog that lists the entries it contains.
+
+**Changes:**
+- Removed `ClaudePluginMediaType` (`application/vnd.claude.code-plugin+json`) and `CopilotPluginMediaType` (`application/vnd.copilot.plugin+json`) constants
+- All plugin entries now use `MediaType = "application/ai-catalog+json"`
+- **Copilot plugins with skills:** skills become sub-entries in a nested `Data` catalog (one CatalogEntry per skill with `application/json` mediaType and the skill path as `url`). Parent entry uses `Data` instead of `Url` (respecting url/data exclusivity per CE-5).
+- **Claude plugins:** `Url` kept pointing to manifest; consumer dereferences it.
+- **Copilot plugins without skills:** fall back to `Url` from `source`.
+
+**Key architectural pattern:** Plugin = nested ai-catalog. Skills within a plugin become catalog entries inside the plugin's embedded Data catalog. Identifier pattern for skill sub-entries: `{plugin-identifier}:{skill-leaf-name}`.
+
+**Tests updated:** `ConvertMarketplaceTests.cs` unchanged (Claude fixture already had correct expected mediaType). `MarketplaceIntegrationTests.cs` updated: skill-tag assertions replaced with nested-entry assertions. All 210 tests pass (168 library + 42 CLI).
+
+**Shared fixture:** `testcases/marketplace-expected.json` already had `application/ai-catalog+json` (updated by Leon previously).
+

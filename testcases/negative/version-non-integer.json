@@ -1,0 +1,17 @@
+{
+  "description": "Catalog with non-integer version components — major and minor must be integers",
+  "spec_section": "§ Version Handling (VH-1)",
+  "test_ids": ["VH-N05"],
+  "input": {
+    "specVersion": "a.b",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:test-agent",
+        "displayName": "Test Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/test/agent-card.json"
+      }
+    ]
+  },
+  "expected_error": "specVersion major and minor components must be non-negative integers, found 'a.b'"
+}

@@ -1,0 +1,20 @@
+{
+  "description": "Catalog with empty-string metadata key — metadata keys MUST be non-empty strings",
+  "spec_section": "§ Metadata Extensibility (ME-2)",
+  "test_ids": ["ME-N01"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:test-agent",
+        "displayName": "Test Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/test/agent-card.json",
+        "metadata": {
+          "": "invalid-empty-key"
+        }
+      }
+    ]
+  },
+  "expected_error": "metadata keys must be non-empty strings, found empty string in entry[0].metadata"
+}

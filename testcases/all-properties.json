@@ -1,7 +1,7 @@
 {
   "description": "Every possible field populated — comprehensive catalog with all optional properties on all objects",
-  "spec_section": "§ Top-Level Structure, § Catalog Entry, § Host Info, § Trust Manifest, § Publisher Object, § Attestation Object, § Provenance Link Object, § Trust Schema Object, § Collections",
-  "test_ids": ["TL-P02", "CE-P07", "HI-P02", "TM-P02", "PO-P02", "AT-P02", "PL-P02", "TS-P02", "CO-P02"],
+  "spec_section": "§ Top-Level Structure, § Catalog Entry, § Host Info, § Trust Manifest, § Publisher Object, § Attestation Object, § Provenance Link Object, § Trust Schema Object",
+  "test_ids": ["TL-P02", "CE-P07", "HI-P02", "TM-P02", "PO-P02", "AT-P02", "PL-P02", "TS-P02"],
   "input": {
     "specVersion": "1.0",
     "host": {
@@ -115,14 +115,6 @@
         }
       }
     ],
-    "collections": [
-      {
-        "displayName": "Fabrikam MCP Integrations",
-        "url": "https://catalogs.fabrikam.com/mcp-servers.json",
-        "description": "Model Context Protocol server integrations maintained by the Fabrikam AI team",
-        "tags": ["mcp", "integrations", "enterprise"]
-      }
-    ],
     "metadata": {
       "generatedAt": "2026-04-01T00:00:00Z",
       "generator": "Fabrikam Catalog Builder v2.0",
@@ -133,7 +125,6 @@
     "valid": true,
     "spec_version": "1.0",
     "entry_count": 1,
-    "collection_count": 1,
     "conformance_level": "trusted",
     "has_host": true,
     "has_metadata": true,

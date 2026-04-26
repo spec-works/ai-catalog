@@ -1,0 +1,31 @@
+{
+  "description": "Catalog with reverse-DNS metadata keys — RECOMMENDED for vendor-specific extensions",
+  "spec_section": "§ Metadata Extensibility (ME-3)",
+  "test_ids": ["ME-P01"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:test-agent",
+        "displayName": "Test Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/test/agent-card.json",
+        "metadata": {
+          "com.example.internal-id": "agent-12345",
+          "org.acme.priority": "high",
+          "io.github.category": "experimental"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 1,
+    "entries": [
+      {
+        "has_metadata": true,
+        "metadata_key_count": 3
+      }
+    ]
+  }
+}

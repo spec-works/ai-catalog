@@ -56,32 +56,36 @@ testcases/
 ├── README.md                          ← this file
 ├── minimal-catalog.json               ← Level 1 simplest valid catalog
 ├── empty-entries.json                 ← valid catalog with empty entries array
-├── inline-artifact.json               ← entry using inline (JSON object)
-├── inline-string.json                 ← inline as JSON string
-├── inline-number.json                 ← inline as JSON number
-├── inline-array.json                  ← inline as JSON array
-├── inline-boolean.json                ← inline as JSON boolean
-├── spec-example-multi-artifact.json   ← multi-artifact with nested bundle
-├── spec-example-collections.json      ← catalog with collection references
+├── inline-artifact.json               ← entry using data (JSON object)
+├── inline-string.json                 ← data as JSON string
+├── inline-number.json                 ← data as JSON number
+├── inline-array.json                  ← data as JSON array
+├── inline-boolean.json                ← data as JSON boolean
+├── spec-example-multi-artifact.json   ← multi-artifact with nested catalog
+├── hierarchical-catalog.json          ← hierarchical organization with nested catalogs
+├── dual-protocol-agent.json           ← dual-protocol agent (MCP + A2A)
 ├── all-properties.json                ← every field on every object populated
 ├── multi-version-entries.json         ← same identifier, different versions
-├── nested-bundle.json                 ← inline nested catalog (bundle)
-├── discoverable-catalog.json          ← Level 2 with host + collections
+├── nested-catalog.json                ← nested catalog entry
+├── nested-depth-at-limit.json         ← nested catalog at depth limit (4)
+├── discoverable-catalog.json          ← Level 2 with host info
 ├── trusted-catalog.json               ← Level 3 with trust manifests
 ├── extension-fields.json              ← unknown x- fields preserved
-├── mixed-media-types.json             ← A2A, MCP, Claude plugin, Parquet, bundle
+├── mixed-media-types.json             ← A2A, MCP, Claude plugin, Parquet, nested catalog
 ├── identifier-formats.json            ← URN, HTTPS, DID identifiers
 ├── identifier-plain-string.json       ← non-URI identifier (warns)
 ├── host-minimal.json                  ← host with only displayName
 ├── attestation-data-uri.json          ← attestation using data: URI
 ├── mcp-registry-catalog.json          ← MCP registry as AI Catalog
 ├── metadata-round-trip.json           ← nested metadata preservation
+├── metadata-reverse-dns.json          ← metadata with reverse-DNS keys
+├── metadata-all-types.json            ← metadata with all JSON value types
 ├── claude-plugin-entry.json           ← Claude Code plugin entry
 ├── all-https-urls.json                ← all URLs use HTTPS
 ├── entry-all-optional-fields.json     ← entry with every optional field
-├── empty-collections.json             ← valid empty collections array
-├── entries-and-collections.json       ← both entries and collections
-├── cross-bundle-identifier-reuse.json ← identifier reuse across bundles
+├── cross-catalog-identifier-reuse.json← identifier reuse across nested catalogs
+├── version-1.0.json                   ← specVersion 1.0 format validation
+├── version-1.1.json                   ← specVersion 1.1 forward compatibility
 ├── marketplace-input.json             ← Claude marketplace.json input
 ├── marketplace-expected.json          ← expected ai-catalog conversion output
 └── negative/
@@ -90,8 +94,9 @@ testcases/
     ├── missing-entry-identifier.json      ← CE-1: identifier required
     ├── missing-entry-display-name.json    ← CE-3: displayName required
     ├── missing-entry-media-type.json      ← CE-4: mediaType required
-    ├── missing-entry-content.json         ← CE-5: url or inline required
-    ├── both-url-and-inline.json           ← CE-5: not both
+    ├── missing-entry-content.json         ← CE-5: url or data required
+    ├── both-url-and-data.json             ← CE-5: not both
+    ├── data-null.json                     ← DA-N03: data: null treated as absent
     ├── duplicate-identifier.json          ← MV-3: unique when no version
     ├── duplicate-identifier-version.json  ← MV-2: unique (id, version)
     ├── triple-entry-duplicate-version.json← MV-2: three entries, two clash
@@ -105,10 +110,15 @@ testcases/
     ├── missing-trust-manifest-identity.json ← TI-1: identity required
     ├── missing-trust-schema-fields.json   ← TS-1/2: identifier + version
     ├── missing-provenance-fields.json     ← PL-1/2: relation + sourceId
-    ├── missing-collection-fields.json     ← CR-1/2: displayName + url
     ├── spec-version-wrong-type.json       ← TL-1: must be string
     ├── spec-version-null.json             ← TL-1: must not be null
     ├── spec-version-empty.json            ← TL-1: must not be empty
+    ├── version-unsupported-major.json     ← VH-N01: reject unsupported major version
+    ├── version-no-minor.json              ← VH-N02: Major.Minor format required
+    ├── version-three-segments.json        ← VH-N03: no patch version allowed
+    ├── version-negative.json              ← VH-N04: non-negative integers required
+    ├── version-non-integer.json           ← VH-N05: integer components required
+    ├── metadata-empty-key.json            ← ME-N01: non-empty keys required
     ├── entries-wrong-type.json            ← TL-2: must be array
     ├── root-not-object.json               ← root must be object
     ├── invalid-tags-type.json             ← CE-10: tags must be strings
@@ -117,7 +127,8 @@ testcases/
     ├── weak-digest-algorithm.json         ← VD-3: reject SHA-1
     ├── attestation-negative-size.json     ← AT-5: size must be uint
     ├── host-display-name-wrong-type.json  ← HI-1: must be string
-    ├── invalid-bundle-inline.json         ← BU-1: inline must be valid catalog
+    ├── invalid-nested-catalog.json        ← NC-1: data must be valid catalog
+    ├── depth-exceeds-limit.json           ← SC-N02: depth > 4 exceeds limit
     └── http-url-not-https.json            ← SC-1: HTTPS required
 
 ## How to Consume in Tests
@@ -152,10 +163,10 @@ def test_minimal_catalog():
 
 | Category | Positive | Negative | Total |
 |----------|----------|----------|-------|
-| Positive fixtures | 22 | — | 22 |
-| Negative fixtures | — | 25 | 25 |
+| Positive fixtures | 32 | — | 32 |
+| Negative fixtures | — | 40 | 40 |
 | Marketplace conversion | 2 | — | 2 |
-| **Total** | **24** | **25** | **49** |
+| **Total** | **34** | **40** | **74** |
 
 ## Spec Section Cross-Reference
 

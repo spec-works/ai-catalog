@@ -1,5 +1,5 @@
 {
-  "description": "Catalog entry with inline content as a JSON string — inline can be any JSON value",
+  "description": "Catalog entry with data content as a JSON string — data can be any JSON value",
   "spec_section": "§ Catalog Entry (CE-8)",
   "test_ids": ["CE-P03"],
   "input": {
@@ -9,7 +9,7 @@
         "identifier": "urn:ai:example:system-prompt-v1",
         "displayName": "Customer Support System Prompt",
         "mediaType": "text/plain",
-        "inline": "You are a helpful customer support agent for Acme Corp. Always be polite and professional."
+        "data": "You are a helpful customer support agent for Acme Corp. Always be polite and professional."
       }
     ]
   },
@@ -19,8 +19,8 @@
     "entries": [
       {
         "has_url": false,
-        "has_inline": true,
-        "inline_is_string": true
+        "has_data": true,
+        "data_is_string": true
       }
     ]
   }

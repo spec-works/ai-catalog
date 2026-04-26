@@ -1,0 +1,50 @@
+{
+  "description": "Nested catalog within depth limit of 4 — valid nesting up to recommended maximum",
+  "spec_section": "§ Security Considerations — Nested Catalog Depth (SC-3, NC-3)",
+  "test_ids": ["SC-P01"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:depth:level-1",
+        "displayName": "Level 1 Catalog",
+        "mediaType": "application/ai-catalog+json",
+        "data": {
+          "specVersion": "1.0",
+          "entries": [
+            {
+              "identifier": "urn:example:depth:level-2",
+              "displayName": "Level 2 Catalog",
+              "mediaType": "application/ai-catalog+json",
+              "data": {
+                "specVersion": "1.0",
+                "entries": [
+                  {
+                    "identifier": "urn:example:depth:level-3",
+                    "displayName": "Level 3 Catalog",
+                    "mediaType": "application/ai-catalog+json",
+                    "data": {
+                      "specVersion": "1.0",
+                      "entries": [
+                        {
+                          "identifier": "urn:example:depth:level-4",
+                          "displayName": "Level 4 Agent (Final)",
+                          "mediaType": "application/a2a-agent-card+json",
+                          "url": "https://agents.example.com/level-4/agent-card.json"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "max_nesting_depth": 4
+  }
+}

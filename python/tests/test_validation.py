@@ -5,8 +5,11 @@ from __future__ import annotations
 import json
 from typing import Any
 
+import pytest
+
 from aicatalog import (
     AiCatalog,
+    AiCatalogParseError,
     ConformanceLevel,
     parse,
     validate,
@@ -143,3 +146,172 @@ def test_validate_against_trusted_fails_without_trust_manifest() -> None:
     result = validate_level(catalog, ConformanceLevel.TRUSTED)
     assert not result.is_valid
     assert any("trustManifest" in e for e in result.errors)
+
+
+# ---------------------------------------------------------------------------
+# Version handling tests (VH-1 through VH-8)
+# ---------------------------------------------------------------------------
+
+
+class TestVersionHandling:
+    """Test specVersion Major.Minor format validation."""
+
+    def test_version_1_0_accepted(self) -> None:
+        """VH-P01: specVersion '1.0' is valid."""
+        catalog = parse('{"specVersion": "1.0", "entries": []}')
+        assert catalog.spec_version == "1.0"
+
+    def test_version_1_1_accepted(self) -> None:
+        """VH-P02: specVersion '1.1' (higher minor) is accepted within same major."""
+        catalog = parse('{"specVersion": "1.1", "entries": []}')
+        assert catalog.spec_version == "1.1"
+
+    def test_version_1_99_accepted(self) -> None:
+        """Higher minor versions within major 1 are accepted (VH-5)."""
+        catalog = parse('{"specVersion": "1.99", "entries": []}')
+        assert catalog.spec_version == "1.99"
+
+    def test_version_0_1_accepted(self) -> None:
+        """Major version 0 is accepted (lower than supported)."""
+        catalog = parse('{"specVersion": "0.1", "entries": []}')
+        assert catalog.spec_version == "0.1"
+
+    def test_version_2_0_rejected(self) -> None:
+        """VH-N01: specVersion '2.0' (unsupported major) is rejected."""
+        with pytest.raises(AiCatalogParseError, match="unsupported specVersion major version"):
+            parse('{"specVersion": "2.0", "entries": []}')
+
+    def test_version_no_minor_rejected(self) -> None:
+        """VH-N02: specVersion '1' (no minor) is rejected."""
+        with pytest.raises(AiCatalogParseError, match="Major.Minor"):
+            parse('{"specVersion": "1", "entries": []}')
+
+    def test_version_three_segments_rejected(self) -> None:
+        """VH-N03: specVersion '1.0.0' (extra segment) is rejected."""
+        with pytest.raises(AiCatalogParseError, match="Major.Minor"):
+            parse('{"specVersion": "1.0.0", "entries": []}')
+
+    def test_version_negative_rejected(self) -> None:
+        """VH-N04: specVersion '-1.0' (negative) is rejected."""
+        with pytest.raises(AiCatalogParseError, match="non-negative"):
+            parse('{"specVersion": "-1.0", "entries": []}')
+
+    def test_version_non_integer_rejected(self) -> None:
+        """VH-N05: specVersion 'a.b' (non-integer) is rejected."""
+        with pytest.raises(AiCatalogParseError, match="non-negative integers"):
+            parse('{"specVersion": "a.b", "entries": []}')
+
+
+# ---------------------------------------------------------------------------
+# Metadata validation tests (ME-2)
+# ---------------------------------------------------------------------------
+
+
+class TestMetadataValidation:
+    """Test metadata key validation."""
+
+    def test_empty_metadata_key_rejected(self) -> None:
+        """ME-N01: Metadata with empty-string key is rejected at validation."""
+        from aicatalog.models import CatalogEntry
+
+        catalog = AiCatalog(
+            spec_version="1.0",
+            entries=[
+                CatalogEntry(
+                    identifier="urn:test:agent",
+                    display_name="Test",
+                    media_type="application/a2a-agent-card+json",
+                    url="https://example.com/agent.json",
+                )
+            ],
+            metadata={"": "bad-key"},
+        )
+        result = validate(catalog)
+        assert not result.is_valid
+        assert any("empty string" in e for e in result.errors)
+
+    def test_valid_metadata_keys_accepted(self) -> None:
+        """ME-P01: Metadata with non-empty keys is accepted."""
+        from aicatalog.models import CatalogEntry
+
+        catalog = AiCatalog(
+            spec_version="1.0",
+            entries=[
+                CatalogEntry(
+                    identifier="urn:test:agent",
+                    display_name="Test",
+                    media_type="application/a2a-agent-card+json",
+                    url="https://example.com/agent.json",
+                )
+            ],
+            metadata={"com.example.custom": "value", "simple-key": 42},
+        )
+        result = validate(catalog)
+        assert result.is_valid
+
+    def test_entry_empty_metadata_key_rejected(self) -> None:
+        """ME-N01 at entry level: Empty metadata key on entry is rejected."""
+        from aicatalog.models import CatalogEntry
+
+        catalog = AiCatalog(
+            spec_version="1.0",
+            entries=[
+                CatalogEntry(
+                    identifier="urn:test:agent",
+                    display_name="Test",
+                    media_type="application/a2a-agent-card+json",
+                    url="https://example.com/agent.json",
+                    metadata={"": "bad"},
+                )
+            ],
+        )
+        result = validate(catalog)
+        assert not result.is_valid
+        assert any("empty string" in e for e in result.errors)
+
+
+# ---------------------------------------------------------------------------
+# url/data exclusivity tests
+# ---------------------------------------------------------------------------
+
+
+class TestUrlDataExclusivity:
+    """Test url/data mutual exclusivity validation."""
+
+    def test_both_url_and_data_rejected(self) -> None:
+        """Entry with both url and data is rejected."""
+        from aicatalog.models import CatalogEntry
+
+        catalog = AiCatalog(
+            spec_version="1.0",
+            entries=[
+                CatalogEntry(
+                    identifier="urn:test:agent",
+                    display_name="Test",
+                    media_type="application/a2a-agent-card+json",
+                    url="https://example.com/agent.json",
+                    data={"key": "value"},
+                )
+            ],
+        )
+        result = validate(catalog)
+        assert not result.is_valid
+        assert any("'url' or 'data'" in e for e in result.errors)
+
+    def test_neither_url_nor_data_rejected(self) -> None:
+        """Entry with neither url nor data is rejected."""
+        from aicatalog.models import CatalogEntry
+
+        catalog = AiCatalog(
+            spec_version="1.0",
+            entries=[
+                CatalogEntry(
+                    identifier="urn:test:agent",
+                    display_name="Test",
+                    media_type="application/a2a-agent-card+json",
+                )
+            ],
+        )
+        result = validate(catalog)
+        assert not result.is_valid
+        assert any("'url' or 'data'" in e for e in result.errors)

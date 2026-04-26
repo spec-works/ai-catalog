@@ -45,7 +45,7 @@ class TestConverterUnit:
         entry = catalog.entries[0]
         assert entry.identifier == "urn:claude:plugins:test-plugin"
         assert entry.display_name == "Test Plugin"
-        assert entry.media_type == "application/vnd.claude.code-plugin+json"
+        assert entry.media_type == "application/ai-catalog+json"
         assert entry.url == "https://example.com/manifest.json"
         assert entry.version == "1.0.0"
         assert entry.tags == ["test", "demo"]
@@ -412,18 +412,18 @@ class TestInstallCLI:
         assert "alpha" in config["mcpServers"]
 
     @patch("aicatalog.cli.main._fetch_catalog")
-    def test_install_skill_inline(self, mock_fetch: MagicMock, tmp_path: Path) -> None:
-        """Install a skill entry with inline content."""
+    def test_install_skill_data(self, mock_fetch: MagicMock, tmp_path: Path) -> None:
+        """Install a skill entry with data content."""
         from aicatalog.models import AiCatalog, CatalogEntry
 
         catalog = AiCatalog(
             spec_version="1.0",
             entries=[
                 CatalogEntry(
-                    identifier="urn:test:inline-skill",
-                    display_name="Inline Skill",
+                    identifier="urn:test:data-skill",
+                    display_name="Data Skill",
                     media_type="application/vnd.skill+json",
-                    inline={"tool": "something", "config": {"key": "value"}},
+                    data={"tool": "something", "config": {"key": "value"}},
                 )
             ],
         )
@@ -436,7 +436,7 @@ class TestInstallCLI:
             [
                 "install",
                 "https://example.com/catalog.json",
-                "urn:test:inline-skill",
+                "urn:test:data-skill",
                 "--type",
                 "skill",
                 "--skills-dir",
@@ -445,7 +445,7 @@ class TestInstallCLI:
         )
 
         assert result.exit_code == 0, f"CLI error: {result.output}"
-        dest = skills_dir / "inline-skill.json"
+        dest = skills_dir / "data-skill.json"
         assert dest.exists()
         data = json.loads(dest.read_text(encoding="utf-8"))
         assert data["tool"] == "something"

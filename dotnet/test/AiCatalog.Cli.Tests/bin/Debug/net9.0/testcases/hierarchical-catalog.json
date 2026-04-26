@@ -1,0 +1,48 @@
+{
+  "description": "Hierarchical catalog using nested catalog entries — replaces collections pattern with nested catalogs for organization",
+  "spec_section": "§ Example: Hierarchical Catalog Organization",
+  "test_ids": ["EX-P04"],
+  "input": {
+    "specVersion": "1.0",
+    "host": {
+      "displayName": "Fabrikam AI Registry",
+      "identifier": "https://ai.fabrikam.com",
+      "documentationUrl": "https://docs.fabrikam.com/ai-registry"
+    },
+    "entries": [
+      {
+        "identifier": "https://ai.fabrikam.com/categories/productivity",
+        "displayName": "Productivity Tools",
+        "description": "AI agents and tools for productivity enhancement",
+        "mediaType": "application/ai-catalog+json",
+        "url": "https://ai.fabrikam.com/catalogs/productivity.json",
+        "tags": ["category", "productivity"]
+      },
+      {
+        "identifier": "https://ai.fabrikam.com/categories/development",
+        "displayName": "Development Tools",
+        "description": "AI agents and tools for software development",
+        "mediaType": "application/ai-catalog+json",
+        "url": "https://ai.fabrikam.com/catalogs/development.json",
+        "tags": ["category", "development"]
+      },
+      {
+        "identifier": "https://ai.fabrikam.com/featured/code-assistant",
+        "displayName": "Code Assistant Agent",
+        "description": "Featured agent for code generation and review",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.fabrikam.com/code-assistant/agent-card.json",
+        "version": "3.0.0",
+        "tags": ["featured", "development"]
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "conformance_level": "discoverable",
+    "has_host": true,
+    "entry_count": 3,
+    "nested_catalog_count": 2,
+    "direct_artifact_count": 1
+  }
+}

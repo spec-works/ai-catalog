@@ -23,7 +23,7 @@ from aicatalog import (
     validate,
 )
 from aicatalog.cli.main import cli
-from aicatalog.converter import CLAUDE_PLUGIN_MEDIA_TYPE, CLAUDE_PLUGIN_URN_PREFIX
+from aicatalog.converter import AI_CATALOG_MEDIA_TYPE, CLAUDE_PLUGIN_URN_PREFIX
 
 # ---------------------------------------------------------------------------
 # Fixture paths
@@ -139,7 +139,7 @@ class TestFieldFidelity:
         self, spec_works_catalog: AiCatalog
     ) -> None:
         for entry in spec_works_catalog.entries:
-            assert entry.media_type == CLAUDE_PLUGIN_MEDIA_TYPE
+            assert entry.media_type == AI_CATALOG_MEDIA_TYPE
 
     # -- work-iq fixture --
 
@@ -163,7 +163,7 @@ class TestFieldFidelity:
         self, work_iq_catalog: AiCatalog
     ) -> None:
         for entry in work_iq_catalog.entries:
-            assert entry.media_type == CLAUDE_PLUGIN_MEDIA_TYPE
+            assert entry.media_type == AI_CATALOG_MEDIA_TYPE
 
     def test_all_entries_have_identifiers_with_urn_prefix(
         self, spec_works_catalog: AiCatalog, work_iq_catalog: AiCatalog
@@ -196,16 +196,16 @@ class TestConformanceValidation:
         assert work_iq_catalog.host is None
 
     def test_validation_reports_missing_content(self, spec_works_catalog: AiCatalog) -> None:
-        """Marketplace plugins lack url/inline, so validation should report errors."""
+        """Marketplace plugins lack url/data, so validation should report errors."""
         result = validate(spec_works_catalog)
-        content_errors = [e for e in result.errors if "url" in e or "inline" in e]
+        content_errors = [e for e in result.errors if "url" in e or "data" in e]
         assert len(content_errors) == 5  # one per entry
 
     def test_work_iq_validation_reports_missing_content(
         self, work_iq_catalog: AiCatalog
     ) -> None:
         result = validate(work_iq_catalog)
-        content_errors = [e for e in result.errors if "url" in e or "inline" in e]
+        content_errors = [e for e in result.errors if "url" in e or "data" in e]
         assert len(content_errors) == 3  # one per entry
 
 

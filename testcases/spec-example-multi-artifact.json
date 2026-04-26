@@ -1,5 +1,5 @@
 {
-  "description": "Multi-artifact catalog with entries for different AI artifact types including a nested plugin bundle — mirrors the spec multi-artifact example",
+  "description": "Multi-artifact catalog with entries for different AI artifact types including a nested catalog — mirrors the spec multi-artifact example",
   "spec_section": "§ Example: Multi-Artifact Catalog with Nested Plugin",
   "test_ids": ["EX-P02"],
   "input": {
@@ -25,7 +25,7 @@
         "identifier": "urn:contoso:mcp:database-connector",
         "displayName": "Contoso Database Connector",
         "description": "MCP server providing read-only access to enterprise data warehouses",
-        "mediaType": "application/mcp-server+json",
+        "mediaType": "application/mcp-server-card+json",
         "url": "https://mcp.contoso.com/database-connector/manifest.json",
         "version": "1.5.2",
         "tags": ["mcp", "database", "sql"],
@@ -37,11 +37,11 @@
         }
       },
       {
-        "identifier": "urn:contoso:bundles:finance-toolkit",
-        "displayName": "Finance Toolkit Bundle",
-        "description": "A bundle of AI tools for financial analysis and reporting",
+        "identifier": "urn:contoso:catalogs:finance-toolkit",
+        "displayName": "Finance Toolkit Catalog",
+        "description": "A catalog of AI tools for financial analysis and reporting",
         "mediaType": "application/ai-catalog+json",
-        "inline": {
+        "data": {
           "specVersion": "1.0",
           "entries": [
             {
@@ -61,14 +61,14 @@
             {
               "identifier": "urn:contoso:mcp:ledger-server",
               "displayName": "General Ledger MCP Server",
-              "mediaType": "application/mcp-server+json",
+              "mediaType": "application/mcp-server-card+json",
               "url": "https://mcp.contoso.com/ledger/manifest.json",
               "tags": ["finance", "accounting", "mcp"]
             }
           ]
         },
         "version": "1.0.0",
-        "tags": ["bundle", "finance"]
+        "tags": ["catalog", "finance"]
       }
     ]
   },
@@ -84,20 +84,20 @@
         "identifier": "urn:contoso:agents:data-analyst",
         "media_type": "application/a2a-agent-card+json",
         "has_url": true,
-        "has_inline": false
+        "has_data": false
       },
       {
         "identifier": "urn:contoso:mcp:database-connector",
-        "media_type": "application/mcp-server+json",
+        "media_type": "application/mcp-server-card+json",
         "has_url": true,
         "has_publisher": true
       },
       {
-        "identifier": "urn:contoso:bundles:finance-toolkit",
+        "identifier": "urn:contoso:catalogs:finance-toolkit",
         "media_type": "application/ai-catalog+json",
         "has_url": false,
-        "has_inline": true,
-        "is_bundle": true,
+        "has_data": true,
+        "is_nested_catalog": true,
         "nested_entry_count": 3
       }
     ]

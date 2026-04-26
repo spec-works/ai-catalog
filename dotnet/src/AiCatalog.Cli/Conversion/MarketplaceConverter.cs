@@ -5,6 +5,7 @@ namespace SpecWorks.AiCatalog.Cli.Conversion;
 
 /// <summary>
 /// Converts marketplace JSON documents into AI Catalog documents.
+/// Each plugin becomes a nested ai-catalog entry (not a plugin-specific media type).
 /// Supports two marketplace formats:
 /// <list type="bullet">
 ///   <item><description>Claude Code Plugins: plugins with <c>display_name</c>, <c>manifest_url</c>, <c>publisher</c></description></item>
@@ -13,8 +14,7 @@ namespace SpecWorks.AiCatalog.Cli.Conversion;
 /// </summary>
 public static class MarketplaceConverter
 {
-    private const string ClaudePluginMediaType = "application/vnd.claude.code-plugin+json";
-    private const string CopilotPluginMediaType = "application/vnd.copilot.plugin+json";
+    private const string AiCatalogMediaType = "application/ai-catalog+json";
     private const string ClaudeIdentifierPrefix = "urn:claude:plugins:";
     private const string MarketplaceIdentifierPrefix = "urn:marketplace:";
 
@@ -170,13 +170,8 @@ public static class MarketplaceConverter
         {
             Identifier = identifier,
             DisplayName = name,
-            MediaType = CopilotPluginMediaType,
+            MediaType = AiCatalogMediaType,
         };
-
-        if (plugin.TryGetProperty("source", out var sourceElement) && sourceElement.ValueKind == JsonValueKind.String)
-        {
-            entry.Url = sourceElement.GetString();
-        }
 
         if (plugin.TryGetProperty("description", out var descElement) && descElement.ValueKind == JsonValueKind.String)
         {
@@ -188,20 +183,6 @@ public static class MarketplaceConverter
             entry.Version = versionElement.GetString();
         }
 
-        // Map skills paths to tags (extract leaf name from each path)
-        if (plugin.TryGetProperty("skills", out var skillsElement) && skillsElement.ValueKind == JsonValueKind.Array)
-        {
-            entry.Tags = skillsElement.EnumerateArray()
-                .Where(s => s.ValueKind == JsonValueKind.String)
-                .Select(s =>
-                {
-                    var path = s.GetString()!;
-                    var lastSlash = path.LastIndexOf('/');
-                    return lastSlash >= 0 ? path[(lastSlash + 1)..] : path;
-                })
-                .ToList();
-        }
-
         if (sharedPublisher != null)
         {
             entry.Publisher = new Publisher
@@ -211,8 +192,59 @@ public static class MarketplaceConverter
             };
         }
 
+        // If skills are present, create a nested catalog with one entry per skill
+        if (plugin.TryGetProperty("skills", out var skillsElement) && skillsElement.ValueKind == JsonValueKind.Array)
+        {
+            var skillEntries = skillsElement.EnumerateArray()
+                .Where(s => s.ValueKind == JsonValueKind.String)
+                .Select(s =>
+                {
+                    var skillPath = s.GetString()!;
+                    var leafName = skillPath.LastIndexOf('/') is var idx && idx >= 0
+                        ? skillPath[(idx + 1)..]
+                        : skillPath;
+
+                    return new CatalogEntry
+                    {
+                        Identifier = $"{identifier}:{leafName}",
+                        DisplayName = leafName,
+                        MediaType = "application/json",
+                        Url = skillPath
+                    };
+                })
+                .ToList();
+
+            if (skillEntries.Count > 0)
+            {
+                var nestedCatalog = new Models.AiCatalog
+                {
+                    SpecVersion = "1.0",
+                    Entries = skillEntries
+                };
+
+                // Serialize the nested catalog to a JsonElement for the Data property
+                var nestedJson = JsonSerializer.Serialize(nestedCatalog, s_serializerOptions);
+                entry.Data = JsonDocument.Parse(nestedJson).RootElement.Clone();
+            }
+        }
+
+        // If no nested Data was created, fall back to url from source
+        if (entry.Data == null)
+        {
+            if (plugin.TryGetProperty("source", out var sourceElement) && sourceElement.ValueKind == JsonValueKind.String)
+            {
+                entry.Url = sourceElement.GetString();
+            }
+        }
+
         return entry;
     }
+
+    private static readonly JsonSerializerOptions s_serializerOptions = new()
+    {
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = null,
+    };
 
     private static CatalogEntry ConvertClaudePlugin(JsonElement plugin)
     {
@@ -227,7 +259,7 @@ public static class MarketplaceConverter
         {
             Identifier = $"{ClaudeIdentifierPrefix}{name}",
             DisplayName = displayName,
-            MediaType = ClaudePluginMediaType,
+            MediaType = AiCatalogMediaType,
             Url = manifestUrl
         };
 

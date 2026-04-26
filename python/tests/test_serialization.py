@@ -12,7 +12,6 @@ def _compare_catalogs(original: AiCatalog, roundtripped: AiCatalog) -> None:
     """Deep comparison of two AiCatalog instances."""
     assert original.spec_version == roundtripped.spec_version
     assert len(original.entries) == len(roundtripped.entries)
-    assert len(original.collections) == len(roundtripped.collections)
 
     # Host
     assert (original.host is None) == (roundtripped.host is None)
@@ -30,7 +29,7 @@ def _compare_catalogs(original: AiCatalog, roundtripped: AiCatalog) -> None:
         assert orig.display_name == rt.display_name, f"entry[{i}].display_name"
         assert orig.media_type == rt.media_type, f"entry[{i}].media_type"
         assert orig.url == rt.url, f"entry[{i}].url"
-        assert orig.inline == rt.inline, f"entry[{i}].inline"
+        assert orig.data == rt.data, f"entry[{i}].data"
         assert orig.version == rt.version, f"entry[{i}].version"
         assert orig.description == rt.description, f"entry[{i}].description"
         assert orig.tags == rt.tags, f"entry[{i}].tags"
@@ -50,15 +49,6 @@ def _compare_catalogs(original: AiCatalog, roundtripped: AiCatalog) -> None:
             assert orig.trust_manifest.identity == rt.trust_manifest.identity
             assert len(orig.trust_manifest.attestations) == len(rt.trust_manifest.attestations)
             assert len(orig.trust_manifest.provenance) == len(rt.trust_manifest.provenance)
-
-    # Collections
-    for i, (orig, rt) in enumerate(
-        zip(original.collections, roundtripped.collections, strict=True)
-    ):
-        assert orig.display_name == rt.display_name, f"collection[{i}].display_name"
-        assert orig.url == rt.url, f"collection[{i}].url"
-        assert orig.description == rt.description, f"collection[{i}].description"
-        assert orig.tags == rt.tags, f"collection[{i}].tags"
 
     # Metadata
     assert original.metadata == roundtripped.metadata

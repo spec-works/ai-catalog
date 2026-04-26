@@ -1,6 +1,6 @@
 {
-  "description": "Bundle entry with an inline nested AI Catalog — the entry's mediaType is application/ai-catalog+json and the inline value is itself a valid catalog document",
-  "spec_section": "§ Organizing Catalogs — Bundles (BU-1)",
+  "description": "Nested catalog entry with embedded AI Catalog — the entry's mediaType is application/ai-catalog+json and the data value is itself a valid catalog document",
+  "spec_section": "§ Organizing Catalogs — Nested Catalog Entries (NC-1)",
   "test_ids": ["BN-P01", "BN-P03"],
   "input": {
     "specVersion": "1.0",
@@ -13,18 +13,18 @@
         "version": "1.2.0"
       },
       {
-        "identifier": "urn:example:bundles:devops-toolkit",
-        "displayName": "DevOps Toolkit Bundle",
-        "description": "A curated bundle of CI/CD and infrastructure MCP servers",
+        "identifier": "urn:example:catalogs:devops-toolkit",
+        "displayName": "DevOps Toolkit Catalog",
+        "description": "A curated catalog of CI/CD and infrastructure MCP servers",
         "mediaType": "application/ai-catalog+json",
-        "inline": {
+        "data": {
           "specVersion": "1.0",
           "entries": [
             {
               "identifier": "urn:example:mcp:ci-runner",
               "displayName": "CI Runner MCP Server",
               "description": "Triggers and monitors CI/CD pipelines",
-              "mediaType": "application/mcp-server+json",
+              "mediaType": "application/mcp-server-card+json",
               "url": "https://mcp.example.com/ci-runner/manifest.json",
               "version": "2.0.0"
             },
@@ -32,14 +32,14 @@
               "identifier": "urn:example:mcp:infra-provisioner",
               "displayName": "Infrastructure Provisioner",
               "description": "Provisions cloud infrastructure via IaC templates",
-              "mediaType": "application/mcp-server+json",
+              "mediaType": "application/mcp-server-card+json",
               "url": "https://mcp.example.com/infra-provisioner/manifest.json",
               "version": "1.3.0"
             }
           ]
         },
         "version": "1.0.0",
-        "tags": ["bundle", "devops", "cicd", "infrastructure"]
+        "tags": ["catalog", "devops", "cicd", "infrastructure"]
       }
     ]
   },
@@ -50,11 +50,11 @@
     "entries": [
       {
         "identifier": "urn:example:agents:translation-agent",
-        "is_bundle": false
+        "is_nested_catalog": false
       },
       {
-        "identifier": "urn:example:bundles:devops-toolkit",
-        "is_bundle": true,
+        "identifier": "urn:example:catalogs:devops-toolkit",
+        "is_nested_catalog": true,
         "nested_spec_version": "1.0",
         "nested_entry_count": 2
       }

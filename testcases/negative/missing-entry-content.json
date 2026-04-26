@@ -1,5 +1,5 @@
 {
-  "description": "Catalog entry with neither url nor inline — exactly one of url or inline is required",
+  "description": "Catalog entry with neither url nor data — exactly one of url or data is required",
   "spec_section": "§ Catalog Entry (CE-5)",
   "test_ids": ["CE-N05"],
   "input": {
@@ -12,5 +12,5 @@
       }
     ]
   },
-  "expected_error": "entry[0] must have exactly one of 'url' or 'inline'"
+  "expected_error": "entry[0] must have exactly one of 'url' or 'data'"
 }

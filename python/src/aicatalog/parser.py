@@ -15,7 +15,6 @@ from .models import (
     AiCatalog,
     Attestation,
     CatalogEntry,
-    CollectionReference,
     HostInfo,
     ProvenanceLink,
     Publisher,
@@ -51,9 +50,6 @@ _PUBLISHER_KEYS = {
     "displayName": "display_name",
     "identityType": "identity_type",
 }
-_COLLECTION_KEYS = {
-    "displayName": "display_name",
-}
 _PROVENANCE_KEYS = {
     "sourceId": "source_id",
     "sourceDigest": "source_digest",
@@ -65,10 +61,10 @@ _ATTESTATION_KEYS = {
     "mediaType": "media_type",
 }
 
-# Known fields for each object type (camelCase) — anything else is an extension field
-_CATALOG_KNOWN = {"specVersion", "entries", "host", "collections", "metadata"}
+# Known fields for each object type (camelCase) — anything else is silently ignored (VH-2)
+_CATALOG_KNOWN = {"specVersion", "entries", "host", "metadata"}
 _ENTRY_KNOWN = {
-    "identifier", "displayName", "mediaType", "url", "inline", "version",
+    "identifier", "displayName", "mediaType", "url", "data", "version",
     "description", "tags", "publisher", "trustManifest", "updatedAt", "metadata",
 }
 
@@ -200,26 +196,6 @@ def _parse_publisher(data: Any, context: str) -> Publisher:
     )
 
 
-def _parse_collection(data: Any, index: int) -> CollectionReference:
-    if not isinstance(data, dict):
-        raise AiCatalogParseError(f"collection[{index}] must be a JSON object")
-    missing = [f for f in ("displayName", "url") if f not in data]
-    if missing:
-        raise AiCatalogParseError(
-            f"missing required fields on collection[{index}]: {', '.join(missing)}"
-        )
-    remapped = _remap(data, _COLLECTION_KEYS)
-    tags = remapped.get("tags", [])
-    if not isinstance(tags, list):
-        raise AiCatalogParseError(f"collection[{index}] tags must be an array")
-    return CollectionReference(
-        display_name=remapped["display_name"],
-        url=remapped["url"],
-        description=remapped.get("description"),
-        tags=tags,
-    )
-
-
 def _parse_host(data: Any) -> HostInfo:
     if not isinstance(data, dict):
         raise AiCatalogParseError("host must be a JSON object")
@@ -305,7 +281,7 @@ def _parse_entry(data: Any, index: int) -> CatalogEntry:
         display_name=remapped["display_name"],
         media_type=remapped["media_type"],
         url=remapped.get("url"),
-        inline=remapped.get("inline"),
+        data=remapped.get("data"),
         version=remapped.get("version"),
         description=remapped.get("description"),
         tags=tags,
@@ -328,7 +304,7 @@ def _parse_dict(data: dict[str, Any]) -> AiCatalog:
         json_type = type_map.get(type_name, type_name)
         raise AiCatalogParseError(f"root document must be a JSON object, got {json_type}")
 
-    # specVersion
+    # specVersion — parse first per VH-4
     if "specVersion" not in data:
         raise AiCatalogParseError("missing required field: specVersion")
     sv = data["specVersion"]
@@ -337,6 +313,9 @@ def _parse_dict(data: dict[str, Any]) -> AiCatalog:
     sv = _require_str(sv, "specVersion")
     if sv == "":
         raise AiCatalogParseError("specVersion must not be empty")
+
+    # Validate Major.Minor format (VH-1)
+    _validate_spec_version(sv)
 
     # entries
     if "entries" not in data:
@@ -358,16 +337,10 @@ def _parse_dict(data: dict[str, Any]) -> AiCatalog:
     if "host" in data and data["host"] is not None:
         host = _parse_host(data["host"])
 
-    # collections
-    collections = []
-    raw_collections = data.get("collections", [])
-    if isinstance(raw_collections, list):
-        collections = [_parse_collection(c, i) for i, c in enumerate(raw_collections)]
-
     # metadata
     metadata = data.get("metadata")
 
-    # extension fields
+    # Unknown fields are silently ignored per VH-2 (MUST-ignore rule)
     extra_fields: dict[str, Any] = {}
     for k, v in data.items():
         if k not in _CATALOG_KNOWN:
@@ -377,10 +350,43 @@ def _parse_dict(data: dict[str, Any]) -> AiCatalog:
         spec_version=sv,
         entries=entries,
         host=host,
-        collections=collections,
         metadata=metadata,
         extra_fields=extra_fields,
     )
+
+
+# Supported major version
+_SUPPORTED_MAJOR_VERSION = 1
+
+
+def _validate_spec_version(sv: str) -> None:
+    """Validate specVersion is Major.Minor format with non-negative integers (VH-1).
+
+    Rejects unsupported major versions with informative error (VH-6).
+    Accepts any minor version within the supported major version (VH-5).
+    """
+    parts = sv.split(".")
+    if len(parts) != 2:
+        raise AiCatalogParseError(
+            f"specVersion must be in Major.Minor format (e.g., '1.0'), found '{sv}'"
+        )
+    try:
+        major = int(parts[0])
+        minor = int(parts[1])
+    except ValueError:
+        raise AiCatalogParseError(
+            f"specVersion major and minor components must be "
+            f"non-negative integers, found '{sv}'"
+        ) from None
+    if major < 0 or minor < 0:
+        raise AiCatalogParseError(
+            f"specVersion major and minor components must be non-negative integers, found '{sv}'"
+        )
+    if major > _SUPPORTED_MAJOR_VERSION:
+        raise AiCatalogParseError(
+            f"unsupported specVersion major version: {major} "
+            f"(this implementation supports major version {_SUPPORTED_MAJOR_VERSION})"
+        )
 
 
 def parse(json_string: str) -> AiCatalog:

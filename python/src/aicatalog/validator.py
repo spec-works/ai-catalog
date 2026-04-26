@@ -44,11 +44,17 @@ _WEAK_DIGESTS = {"md5", "sha1"}
 # URI scheme pattern
 _URI_SCHEME = re.compile(r"^[a-zA-Z][a-zA-Z0-9+\-\.]*:")
 
+# Recommended maximum nesting depth for nested catalog entries (NC-3)
+DEFAULT_MAX_NESTING_DEPTH = 4
+
 
 def _validate_entries_common(
     catalog: AiCatalog, errors: list[str], warnings: list[str]
 ) -> None:
     """Validate rules that apply across all conformance levels."""
+
+    # Metadata empty-key validation (ME-2)
+    _validate_metadata_keys(catalog.metadata, "catalog", errors)
 
     # Identifier + version uniqueness
     seen: dict[tuple[str, str | None], int] = {}
@@ -68,15 +74,15 @@ def _validate_entries_common(
             seen[key] = i
 
     for i, entry in enumerate(catalog.entries):
-        # url/inline exclusivity
+        # url/data exclusivity
         has_url = entry.url is not None
-        has_inline = entry.inline is not None
-        if has_url and has_inline:
+        has_data = entry.data is not None
+        if has_url and has_data:
             errors.append(
-                f"entry[{i}] must have exactly one of 'url' or 'inline', found both"
+                f"entry[{i}] must have exactly one of 'url' or 'data', found both"
             )
-        elif not has_url and not has_inline:
-            errors.append(f"entry[{i}] must have exactly one of 'url' or 'inline'")
+        elif not has_url and not has_data:
+            errors.append(f"entry[{i}] must have exactly one of 'url' or 'data'")
 
         # URL must be HTTPS (not HTTP)
         if entry.url is not None and entry.url.startswith("http://"):
@@ -109,35 +115,72 @@ def _validate_entries_common(
         if entry.trust_manifest is not None:
             _validate_trust_manifest(entry.trust_manifest, entry, i, errors, warnings)
 
-        # Bundle inline validation (TD-8)
+        # Nested catalog entry validation (was "bundle" — TD-8)
         if (
-            entry.inline is not None
-            and isinstance(entry.inline, dict)
+            entry.data is not None
+            and isinstance(entry.data, dict)
             and entry.media_type == "application/ai-catalog+json"
         ):
-            _validate_bundle_inline(entry.inline, i, errors)
+            # Root catalog is depth 1; first nested catalog is depth 2
+            _validate_nested_catalog(entry.data, i, errors, depth=2)
 
-    # Collection URL HTTPS check
-    for i, col in enumerate(catalog.collections):
-        if col.url.startswith("http://"):
-            errors.append(
-                f"collection[{i}] url uses HTTP; MUST be HTTPS per security requirements"
+        # Entry-level metadata empty-key validation (ME-2)
+        _validate_metadata_keys(entry.metadata, f"entry[{i}]", errors)
+
+        # Trust manifest metadata empty-key validation (ME-2)
+        if entry.trust_manifest is not None and entry.trust_manifest.metadata is not None:
+            _validate_metadata_keys(
+                entry.trust_manifest.metadata, f"entry[{i}].trustManifest", errors
             )
 
 
-def _validate_bundle_inline(inline: dict[str, Any], index: int, errors: list[str]) -> None:
-    """Validate inline bundle catalog (TD-8: recursive validation)."""
-    if "specVersion" not in inline:
+def _validate_metadata_keys(
+    metadata: dict[str, Any] | None, context: str, errors: list[str]
+) -> None:
+    """Validate metadata keys are non-empty strings (ME-2)."""
+    if metadata is None:
+        return
+    for key in metadata:
+        if key == "":
+            errors.append(
+                f"metadata keys must be non-empty strings, "
+                f"found empty string in {context}.metadata"
+            )
+
+
+def _validate_nested_catalog(
+    data: dict[str, Any], index: int, errors: list[str], depth: int = 1
+) -> None:
+    """Validate nested catalog entry (recursive validation per TD-8)."""
+    if "specVersion" not in data:
         errors.append(
-            f"inline catalog for entry[{index}] is not a valid AI Catalog: "
+            f"nested catalog for entry[{index}] is not a valid AI Catalog: "
             "missing required field specVersion"
         )
         return
-    if "entries" not in inline:
+    if "entries" not in data:
         errors.append(
-            f"inline catalog for entry[{index}] is not a valid AI Catalog: "
+            f"nested catalog for entry[{index}] is not a valid AI Catalog: "
             "missing required field entries"
         )
+        return
+
+    # Recursively check nesting depth
+    if isinstance(data.get("entries"), list):
+        for j, sub_entry in enumerate(data["entries"]):
+            if (
+                isinstance(sub_entry, dict)
+                and sub_entry.get("mediaType") == "application/ai-catalog+json"
+                and isinstance(sub_entry.get("data"), dict)
+            ):
+                new_depth = depth + 1
+                if new_depth > DEFAULT_MAX_NESTING_DEPTH:
+                    errors.append(
+                        "nested catalog depth exceeds recommended "
+                        f"limit of {DEFAULT_MAX_NESTING_DEPTH}"
+                    )
+                else:
+                    _validate_nested_catalog(sub_entry["data"], j, errors, new_depth)
 
 
 def _validate_trust_manifest(

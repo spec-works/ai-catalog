@@ -3,7 +3,7 @@
 Public API:
     parse, parse_file, serialize, serialize_to_dict,
     validate, validate_level,
-    AiCatalog, CatalogEntry, HostInfo, CollectionReference,
+    AiCatalog, CatalogEntry, HostInfo,
     Publisher, TrustManifest, TrustSchema, Attestation, ProvenanceLink,
     ConformanceLevel, ValidationResult,
     AiCatalogError, AiCatalogParseError, AiCatalogValidationError
@@ -15,7 +15,6 @@ from .models import (
     AiCatalog,
     Attestation,
     CatalogEntry,
-    CollectionReference,
     HostInfo,
     ProvenanceLink,
     Publisher,
@@ -45,7 +44,6 @@ __all__ = [
     "AiCatalog",
     "CatalogEntry",
     "HostInfo",
-    "CollectionReference",
     "Publisher",
     "TrustManifest",
     "TrustSchema",

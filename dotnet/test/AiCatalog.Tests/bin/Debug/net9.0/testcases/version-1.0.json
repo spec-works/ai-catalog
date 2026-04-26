@@ -1,0 +1,22 @@
+{
+  "description": "Catalog with specVersion 1.0 — valid Major.Minor format",
+  "spec_section": "§ Version Handling (VH-1)",
+  "test_ids": ["VH-P01"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:test-agent",
+        "displayName": "Test Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/test/agent-card.json"
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "spec_version": "1.0",
+    "spec_version_major": 1,
+    "spec_version_minor": 0
+  }
+}

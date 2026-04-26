@@ -1,6 +1,6 @@
 """Domain model types for the AI Card specification.
 
-Nine public dataclasses mapping 1:1 to the CDDL schema.
+Eight public dataclasses mapping 1:1 to the CDDL schema.
 Python uses snake_case; JSON mapping to camelCase is handled in parser/serializer.
 """
 
@@ -80,16 +80,6 @@ class HostInfo:
 
 
 @dataclass
-class CollectionReference:
-    """Reference to an external catalog collection."""
-
-    display_name: str
-    url: str
-    description: str | None = None
-    tags: list[str] = field(default_factory=list)
-
-
-@dataclass
 class CatalogEntry:
     """A single entry in the AI Catalog."""
 
@@ -97,7 +87,7 @@ class CatalogEntry:
     display_name: str
     media_type: str
     url: str | None = None
-    inline: Any | None = None
+    data: Any | None = None
     version: str | None = None
     description: str | None = None
     tags: list[str] = field(default_factory=list)
@@ -115,6 +105,5 @@ class AiCatalog:
     spec_version: str
     entries: list[CatalogEntry] = field(default_factory=list)
     host: HostInfo | None = None
-    collections: list[CollectionReference] = field(default_factory=list)
     metadata: dict[str, Any] | None = None
     extra_fields: dict[str, Any] = field(default_factory=dict)

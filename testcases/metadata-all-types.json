@@ -1,0 +1,36 @@
+{
+  "description": "Catalog with metadata values of all JSON types — metadata values MAY be any valid JSON type",
+  "spec_section": "§ Metadata Extensibility (ME-7)",
+  "test_ids": ["ME-P02"],
+  "input": {
+    "specVersion": "1.0",
+    "metadata": {
+      "string-value": "hello",
+      "number-value": 42,
+      "boolean-value": true,
+      "null-value": null,
+      "array-value": ["a", "b", "c"],
+      "object-value": {
+        "nested": "value"
+      }
+    },
+    "entries": [
+      {
+        "identifier": "urn:example:agents:test-agent",
+        "displayName": "Test Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/test/agent-card.json"
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "has_metadata": true,
+    "metadata_includes_string": true,
+    "metadata_includes_number": true,
+    "metadata_includes_boolean": true,
+    "metadata_includes_null": true,
+    "metadata_includes_array": true,
+    "metadata_includes_object": true
+  }
+}

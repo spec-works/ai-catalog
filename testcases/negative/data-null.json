@@ -1,0 +1,17 @@
+{
+  "description": "Entry with data field containing null — null is treated as absent per TD-1",
+  "spec_section": "§ Catalog Entry (CE-5, CE-8)",
+  "test_ids": ["DA-N03"],
+  "input": {
+    "specVersion": "1.0",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:null-data",
+        "displayName": "Agent With Null Data",
+        "mediaType": "application/a2a-agent-card+json",
+        "data": null
+      }
+    ]
+  },
+  "expected_error": "entry[0] must have exactly one of 'url' or 'data'"
+}

@@ -1,7 +1,7 @@
 {
-  "description": "Level 2 (Discoverable) catalog — includes host info with all fields and collection references",
-  "spec_section": "§ Conformance Levels (CL-2), § Host Info, § Collections",
-  "test_ids": ["CL-P02", "HI-P01", "CO-P01"],
+  "description": "Level 2 (Discoverable) catalog — includes host info with all fields",
+  "spec_section": "§ Conformance Levels (CL-2), § Host Info",
+  "test_ids": ["CL-P02", "HI-P01"],
   "input": {
     "specVersion": "1.0",
     "host": {
@@ -24,30 +24,16 @@
         "identifier": "urn:adventureworks:mcp:product-search",
         "displayName": "Product Search MCP Server",
         "description": "Full-text search over the Adventure Works product catalog",
-        "mediaType": "application/mcp-server+json",
+        "mediaType": "application/mcp-server-card+json",
         "url": "https://mcp.adventureworks.com/product-search/manifest.json",
         "version": "1.0.0",
         "tags": ["mcp", "search", "products"]
-      }
-    ],
-    "collections": [
-      {
-        "displayName": "Regional Catalogs",
-        "url": "https://catalogs.adventureworks.com/regions.json",
-        "description": "Localized AI catalogs for each region",
-        "tags": ["regional", "localized"]
-      },
-      {
-        "displayName": "Partner Integrations",
-        "url": "https://catalogs.adventureworks.com/partners.json",
-        "description": "AI tools from verified partner organizations"
       }
     ]
   },
   "expected": {
     "valid": true,
     "entry_count": 2,
-    "collection_count": 2,
     "conformance_level": "discoverable",
     "has_host": true,
     "host": {

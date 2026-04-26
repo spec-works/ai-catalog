@@ -1,7 +1,8 @@
 """Marketplace-to-AI-Catalog conversion.
 
-Converts Claude Code Plugins marketplace format to AI Catalog format
-per § Mapping to Claude Code Plugins Marketplace and TFD-005.
+Converts Claude Code Plugins marketplace format to AI Catalog format.
+Each plugin becomes a nested ai-catalog entry (application/ai-catalog+json)
+whose url points to the plugin manifest for consumers to dereference.
 """
 
 from __future__ import annotations
@@ -13,8 +14,8 @@ from typing import Any
 from .models import AiCatalog, CatalogEntry, Publisher
 from .serializer import serialize
 
-# Media type for Claude Code plugins (per TFD-005)
-CLAUDE_PLUGIN_MEDIA_TYPE = "application/vnd.claude.code-plugin+json"
+# Media type for converted plugins — each plugin becomes a nested ai-catalog entry
+AI_CATALOG_MEDIA_TYPE = "application/ai-catalog+json"
 
 # Identifier pattern (per TFD-005)
 CLAUDE_PLUGIN_URN_PREFIX = "urn:claude:plugins:"
@@ -35,7 +36,7 @@ def convert_marketplace_plugin(plugin: dict[str, Any]) -> CatalogEntry:
         identifier=f"{CLAUDE_PLUGIN_URN_PREFIX}{name}",
         display_name=plugin.get("display_name", name),
         description=plugin.get("description"),
-        media_type=CLAUDE_PLUGIN_MEDIA_TYPE,
+        media_type=AI_CATALOG_MEDIA_TYPE,
         url=plugin.get("manifest_url"),
         version=plugin.get("version"),
         tags=plugin.get("categories", []),

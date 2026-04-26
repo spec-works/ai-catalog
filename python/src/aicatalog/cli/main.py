@@ -281,19 +281,19 @@ def _install_skill(entry: CatalogEntry, skills_dir: Path) -> None:
         dest.write_bytes(content)
         click.echo(f"Downloaded skill '{entry.display_name}' to {dest}")
 
-    elif entry.inline is not None:
+    elif entry.data is not None:
         name = entry.identifier.rsplit(":", 1)[-1] if ":" in entry.identifier else entry.identifier
         dest = skills_dir / f"{name}.json"
-        if isinstance(entry.inline, (dict, list)):
+        if isinstance(entry.data, (dict, list)):
             dest.write_text(
-                json.dumps(entry.inline, indent=2, ensure_ascii=False) + "\n",
+                json.dumps(entry.data, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
         else:
-            dest.write_text(str(entry.inline), encoding="utf-8")
+            dest.write_text(str(entry.data), encoding="utf-8")
         click.echo(f"Installed skill '{entry.display_name}' to {dest}")
     else:
-        raise click.ClickException(f"Entry '{entry.identifier}' has no url or inline content")
+        raise click.ClickException(f"Entry '{entry.identifier}' has no url or data content")
 
 
 @cli.command()
@@ -346,7 +346,7 @@ def install(
 
     # Auto-detect install type from media type
     if install_type is None:
-        mcp_indicators = {"mcp", "model-context-protocol"}
+        mcp_indicators = {"mcp", "model-context-protocol", "mcp-server-card"}
         if any(ind in entry.media_type.lower() for ind in mcp_indicators):
             install_type = "mcp"
         else:

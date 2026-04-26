@@ -19,8 +19,11 @@ def _check_entry_assertions(entry: CatalogEntry, exp: dict[str, Any], index: int
         assert entry.media_type == exp["media_type"], f"entry[{index}].media_type"
     if "has_url" in exp:
         assert (entry.url is not None) == exp["has_url"], f"entry[{index}].has_url"
+    if "has_data" in exp:
+        assert (entry.data is not None) == exp["has_data"], f"entry[{index}].has_data"
+    # Legacy alias for backward compat with fixtures
     if "has_inline" in exp:
-        assert (entry.inline is not None) == exp["has_inline"], f"entry[{index}].has_inline"
+        assert (entry.data is not None) == exp["has_inline"], f"entry[{index}].has_inline"
     if "has_description" in exp:
         assert (entry.description is not None) == exp["has_description"]
     if "has_version" in exp:
@@ -47,29 +50,48 @@ def _check_entry_assertions(entry: CatalogEntry, exp: dict[str, Any], index: int
     if "provenance_count" in exp and entry.trust_manifest is not None:
         assert len(entry.trust_manifest.provenance) == exp["provenance_count"]
     if "is_bundle" in exp:
-        is_bundle = (
+        is_nested = (
             entry.media_type == "application/ai-catalog+json"
-            and entry.inline is not None
-            and isinstance(entry.inline, dict)
+            and entry.data is not None
+            and isinstance(entry.data, dict)
         )
-        assert is_bundle == exp["is_bundle"], f"entry[{index}].is_bundle"
+        assert is_nested == exp["is_bundle"], f"entry[{index}].is_bundle"
+    if "is_nested_catalog" in exp:
+        is_nested = (
+            entry.media_type == "application/ai-catalog+json"
+            and entry.data is not None
+            and isinstance(entry.data, dict)
+        )
+        assert is_nested == exp["is_nested_catalog"], f"entry[{index}].is_nested_catalog"
     if "nested_spec_version" in exp:
-        assert isinstance(entry.inline, dict)
-        assert entry.inline.get("specVersion") == exp["nested_spec_version"]
+        assert isinstance(entry.data, dict)
+        assert entry.data.get("specVersion") == exp["nested_spec_version"]
     if "nested_entry_count" in exp:
-        assert isinstance(entry.inline, dict)
-        assert len(entry.inline.get("entries", [])) == exp["nested_entry_count"]
-    # Inline type assertions
+        assert isinstance(entry.data, dict)
+        assert len(entry.data.get("entries", [])) == exp["nested_entry_count"]
+    # Data type assertions
+    if "data_is_object" in exp:
+        assert isinstance(entry.data, dict) == exp["data_is_object"]
+    if "data_is_array" in exp:
+        assert isinstance(entry.data, list) == exp["data_is_array"]
+    if "data_is_string" in exp:
+        assert isinstance(entry.data, str) == exp["data_is_string"]
+    if "data_is_boolean" in exp:
+        assert isinstance(entry.data, bool) == exp["data_is_boolean"]
+    if "data_is_number" in exp:
+        is_num = isinstance(entry.data, (int, float)) and not isinstance(entry.data, bool)
+        assert is_num == exp["data_is_number"]
+    # Legacy inline type assertions (for fixtures not yet updated)
     if "inline_is_object" in exp:
-        assert isinstance(entry.inline, dict) == exp["inline_is_object"]
+        assert isinstance(entry.data, dict) == exp["inline_is_object"]
     if "inline_is_array" in exp:
-        assert isinstance(entry.inline, list) == exp["inline_is_array"]
+        assert isinstance(entry.data, list) == exp["inline_is_array"]
     if "inline_is_string" in exp:
-        assert isinstance(entry.inline, str) == exp["inline_is_string"]
+        assert isinstance(entry.data, str) == exp["inline_is_string"]
     if "inline_is_boolean" in exp:
-        assert isinstance(entry.inline, bool) == exp["inline_is_boolean"]
+        assert isinstance(entry.data, bool) == exp["inline_is_boolean"]
     if "inline_is_number" in exp:
-        is_num = isinstance(entry.inline, (int, float)) and not isinstance(entry.inline, bool)
+        is_num = isinstance(entry.data, (int, float)) and not isinstance(entry.data, bool)
         assert is_num == exp["inline_is_number"]
     if "attestation_uri_scheme" in exp and entry.trust_manifest is not None:
         for att in entry.trust_manifest.attestations:
@@ -92,8 +114,6 @@ def test_parse_positive(positive_fixture: tuple[str, dict[str, Any]]) -> None:
         assert catalog.spec_version == expected["spec_version"]
     if "entry_count" in expected:
         assert len(catalog.entries) == expected["entry_count"]
-    if "collection_count" in expected:
-        assert len(catalog.collections) == expected["collection_count"]
     if "has_host" in expected:
         assert (catalog.host is not None) == expected["has_host"]
     if "has_metadata" in expected:
@@ -125,21 +145,6 @@ def test_parse_positive(positive_fixture: tuple[str, dict[str, Any]]) -> None:
                 f"Expected entry[{i}] but only {len(catalog.entries)} entries"
             )
             _check_entry_assertions(catalog.entries[i], entry_exp, i)
-
-    # Collections assertions
-    if "collections" in expected:
-        col_exps = expected["collections"]
-        for i, col_exp in enumerate(col_exps):
-            assert i < len(catalog.collections)
-            col = catalog.collections[i]
-            if "display_name" in col_exp:
-                assert col.display_name == col_exp["display_name"]
-            if "has_url" in col_exp:
-                assert (col.url is not None) == col_exp["has_url"]
-            if "has_description" in col_exp:
-                assert (col.description is not None) == col_exp["has_description"]
-            if "has_tags" in col_exp:
-                assert (len(col.tags) > 0) == col_exp["has_tags"]
 
     # Extension fields preserved
     if "extension_fields_preserved" in expected:

@@ -7,6 +7,7 @@ using SpecWorks.AiCatalog.Parsing;
 using SpecWorks.AiCatalog.Serialization;
 using SpecWorks.AiCatalog.Validation;
 using Xunit;
+using CatalogModel = global::SpecWorks.AiCatalog.Models.AiCatalog;
 
 namespace SpecWorks.AiCatalog.Cli.Tests;
 
@@ -55,8 +56,10 @@ public class MarketplaceIntegrationTests
         Assert.Equal("urn:marketplace:spec-works-plugins:markmyword", markmyword.Identifier);
         Assert.Equal("Bidirectional Markdown and Word (.docx) conversion.", markmyword.Description);
         Assert.Equal("1.0.0", markmyword.Version);
-        Assert.Equal("plugins/markmyword", markmyword.Url);
-        Assert.Equal("application/vnd.copilot.plugin+json", markmyword.MediaType);
+        Assert.Equal("application/ai-catalog+json", markmyword.MediaType);
+        // Skills present → nested Data catalog instead of Url
+        Assert.NotNull(markmyword.Data);
+        Assert.Null(markmyword.Url);
     }
 
     [Fact]
@@ -74,20 +77,33 @@ public class MarketplaceIntegrationTests
     }
 
     [Fact]
-    public void SpecWorks_Convert_SkillsMappedToTags()
+    public void SpecWorks_Convert_SkillsBecomeNestedEntries()
     {
         var json = File.ReadAllText(SpecWorksFixturePath);
         var catalog = MarketplaceConverter.Convert(json);
 
         var markmyword = catalog.Entries.Single(e => e.DisplayName == "markmyword");
-        Assert.NotNull(markmyword.Tags);
-        Assert.Single(markmyword.Tags!);
-        Assert.Equal("markmyword-cli", markmyword.Tags![0]);
+        Assert.NotNull(markmyword.Data);
+
+        // Parse the nested catalog from Data
+        var nestedCatalog = JsonSerializer.Deserialize<CatalogModel>(
+            markmyword.Data!.Value.GetRawText(), s_parseOptions)!;
+        Assert.Single(nestedCatalog.Entries);
+        Assert.Equal("markmyword-cli", nestedCatalog.Entries[0].DisplayName);
+        Assert.Equal("./skills/markmyword-cli", nestedCatalog.Entries[0].Url);
 
         var officetalk = catalog.Entries.Single(e => e.DisplayName == "officetalk");
-        Assert.NotNull(officetalk.Tags);
-        Assert.Equal("officetalk-cli", officetalk.Tags![0]);
+        Assert.NotNull(officetalk.Data);
+        var officetalkNested = JsonSerializer.Deserialize<CatalogModel>(
+            officetalk.Data!.Value.GetRawText(), s_parseOptions)!;
+        Assert.Single(officetalkNested.Entries);
+        Assert.Equal("officetalk-cli", officetalkNested.Entries[0].DisplayName);
     }
+
+    private static readonly JsonSerializerOptions s_parseOptions = new()
+    {
+        PropertyNamingPolicy = null,
+    };
 
     [Fact]
     public void SpecWorks_Convert_AllExpectedPluginNamesPresent()
@@ -136,7 +152,9 @@ public class MarketplaceIntegrationTests
         Assert.Equal("urn:marketplace:work-iq:workiq", workiq.Identifier);
         Assert.StartsWith("Query Microsoft 365 data", workiq.Description);
         Assert.Equal("1.0.0", workiq.Version);
-        Assert.Equal("./plugins/workiq", workiq.Url);
+        Assert.Equal("application/ai-catalog+json", workiq.MediaType);
+        // workiq has skills → nested Data
+        Assert.NotNull(workiq.Data);
     }
 
     [Fact]
@@ -164,25 +182,31 @@ public class MarketplaceIntegrationTests
     }
 
     [Fact]
-    public void WorkIq_Convert_MultiSkillPluginMapsAllSkillsToTags()
+    public void WorkIq_Convert_MultiSkillPluginCreatesNestedEntries()
     {
         var json = File.ReadAllText(WorkIqFixturePath);
         var catalog = MarketplaceConverter.Convert(json);
 
-        // microsoft-365-agents-toolkit has 3 skills
+        // microsoft-365-agents-toolkit has 3 skills → 3 nested entries
         var toolkit = catalog.Entries.Single(e => e.DisplayName == "microsoft-365-agents-toolkit");
-        Assert.NotNull(toolkit.Tags);
-        Assert.Equal(3, toolkit.Tags!.Count);
-        Assert.Contains("install-atk", toolkit.Tags);
-        Assert.Contains("declarative-agent-developer", toolkit.Tags);
-        Assert.Contains("ui-widget-developer", toolkit.Tags);
+        Assert.NotNull(toolkit.Data);
+        var toolkitNested = JsonSerializer.Deserialize<CatalogModel>(
+            toolkit.Data!.Value.GetRawText(), s_parseOptions)!;
+        Assert.Equal(3, toolkitNested.Entries.Count);
+        var nestedNames = toolkitNested.Entries.Select(e => e.DisplayName).ToHashSet();
+        Assert.Contains("install-atk", nestedNames);
+        Assert.Contains("declarative-agent-developer", nestedNames);
+        Assert.Contains("ui-widget-developer", nestedNames);
 
-        // workiq-productivity has 9 skills
+        // workiq-productivity has 9 skills → 9 nested entries
         var productivity = catalog.Entries.Single(e => e.DisplayName == "workiq-productivity");
-        Assert.NotNull(productivity.Tags);
-        Assert.Equal(9, productivity.Tags!.Count);
-        Assert.Contains("action-item-extractor", productivity.Tags);
-        Assert.Contains("channel-digest", productivity.Tags);
+        Assert.NotNull(productivity.Data);
+        var prodNested = JsonSerializer.Deserialize<CatalogModel>(
+            productivity.Data!.Value.GetRawText(), s_parseOptions)!;
+        Assert.Equal(9, prodNested.Entries.Count);
+        var prodNames = prodNested.Entries.Select(e => e.DisplayName).ToHashSet();
+        Assert.Contains("action-item-extractor", prodNames);
+        Assert.Contains("channel-digest", prodNames);
     }
 
     [Fact]

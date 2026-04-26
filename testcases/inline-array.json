@@ -1,5 +1,5 @@
 {
-  "description": "Catalog entry with inline content as a JSON array — inline accepts any JSON value",
+  "description": "Catalog entry with data content as a JSON array — data accepts any JSON value",
   "spec_section": "§ Catalog Entry (CE-8)",
   "test_ids": ["CE-P05"],
   "input": {
@@ -9,7 +9,7 @@
         "identifier": "urn:ai:example:tool-list",
         "displayName": "Supported Tool List",
         "mediaType": "application/json",
-        "inline": [
+        "data": [
           {"name": "web_search", "type": "function"},
           {"name": "code_exec", "type": "function"},
           {"name": "file_read", "type": "function"}
@@ -23,8 +23,8 @@
     "entries": [
       {
         "has_url": false,
-        "has_inline": true,
-        "inline_is_array": true
+        "has_data": true,
+        "data_is_array": true
       }
     ]
   }

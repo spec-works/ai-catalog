@@ -1,5 +1,5 @@
 {
-  "description": "Catalog entry using inline content (JSON object) instead of url — inline is opaque to the catalog spec",
+  "description": "Catalog entry using data content (JSON object) instead of url — data is opaque to the catalog spec",
   "spec_section": "§ Catalog Entry (CE-8)",
   "test_ids": ["CE-P02"],
   "input": {
@@ -9,7 +9,7 @@
         "identifier": "urn:ai:example:code-review-agent",
         "displayName": "Code Review Agent",
         "mediaType": "application/a2a-agent-card+json",
-        "inline": {
+        "data": {
           "name": "Code Review Agent",
           "description": "An AI agent that reviews pull requests and suggests improvements",
           "url": "https://agents.example.com/code-review",
@@ -37,8 +37,8 @@
       {
         "identifier": "urn:ai:example:code-review-agent",
         "has_url": false,
-        "has_inline": true,
-        "inline_is_object": true
+        "has_data": true,
+        "data_is_object": true
       }
     ]
   }

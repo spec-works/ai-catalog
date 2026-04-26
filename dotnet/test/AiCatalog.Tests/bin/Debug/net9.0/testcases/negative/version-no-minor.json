@@ -1,0 +1,17 @@
+{
+  "description": "Catalog with specVersion missing minor version component — format must be Major.Minor",
+  "spec_section": "§ Version Handling (VH-1)",
+  "test_ids": ["VH-N02"],
+  "input": {
+    "specVersion": "1",
+    "entries": [
+      {
+        "identifier": "urn:example:agents:test-agent",
+        "displayName": "Test Agent",
+        "mediaType": "application/a2a-agent-card+json",
+        "url": "https://agents.example.com/test/agent-card.json"
+      }
+    ]
+  },
+  "expected_error": "specVersion must be in Major.Minor format (e.g., '1.0'), found '1'"
+}
