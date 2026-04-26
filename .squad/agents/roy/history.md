@@ -176,3 +176,29 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 **Logged observations:**
 - `explore` requires HTTP(S) URLs, not file:// paths (HttpClient limitation)
 - Unicode escaping of + in media types produces `\u002B` (valid JSON, less readable)
+
+### 2026-07-18: PR #33 Spec Delta — .NET Library & CLI Updated
+
+**Delivered:** All .NET code aligned with PR #33 spec changes per Tyrell's spec-delta-pr33.md analysis. All 210 tests pass (168 library + 42 CLI).
+
+**Breaking changes applied (clean break, no backward compat per user decision):**
+- `CollectionReference` model deleted; `Collections` property removed from `AiCatalog`
+- `CatalogEntry.Inline` renamed to `CatalogEntry.Data`; JSON key changed from `"inline"` to `"data"`
+- Nesting depth limit reduced from 8 → 4
+- Closed-model unknown-field warnings removed (MUST-ignore semantics per VH-2)
+
+**New validation rules:**
+- specVersion format: MUST be `Major.Minor` with non-negative integers (VH-1)
+- specVersion major version compatibility check at parse time (VH-5/VH-6)
+- Metadata keys: empty string keys rejected (ME-2)
+- Parser is now `partial class` with `[GeneratedRegex]` for Major.Minor pattern
+
+**CLI updates:**
+- Media type constant: `application/vnd.mcp.server+json` → `application/vnd.mcp.server-card+json`
+- "Inline content" → "Embedded content" in explore output
+
+**Learnings:**
+- Depth counting edge case: fixture has exactly 4 nesting levels; needed `>=` not `>` comparison against limit of 4
+- Version error messages: differentiate between "has X.Y structure but non-integer components" vs "wrong format entirely" for better fixture error matching
+- Semantic error matching in NegativeParsingTests requires shared key phrases between actual and expected errors; more specific error messages reduce matching fragility
+- `[GeneratedRegex]` requires `partial class` declaration — applied to both Parser and Validator

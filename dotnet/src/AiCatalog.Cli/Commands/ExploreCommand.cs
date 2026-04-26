@@ -186,11 +186,11 @@ public static class ExploreCommand
             }
         }
 
-        if (entry.Inline.HasValue)
+        if (entry.Data.HasValue)
         {
             Console.WriteLine();
-            Console.WriteLine("Inline content:");
-            Console.WriteLine(JsonSerializer.Serialize(entry.Inline.Value, new JsonSerializerOptions { WriteIndented = true }));
+            Console.WriteLine("Embedded content:");
+            Console.WriteLine(JsonSerializer.Serialize(entry.Data.Value, new JsonSerializerOptions { WriteIndented = true }));
         }
     }
 

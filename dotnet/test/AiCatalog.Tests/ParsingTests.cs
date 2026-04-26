@@ -34,12 +34,6 @@ public class ParsingTests
             Assert.Equal(entryCount.GetInt32(), catalog.Entries.Count);
         }
 
-        // Verify collection_count
-        if (expected.TryGetProperty("collection_count", out var collectionCount))
-        {
-            Assert.Equal(collectionCount.GetInt32(), catalog.Collections?.Count ?? 0);
-        }
-
         // Verify has_host
         if (expected.TryGetProperty("has_host", out var hasHost))
         {
@@ -97,6 +91,71 @@ public class ParsingTests
         Assert.Equal("1.0", catalog.SpecVersion);
     }
 
+    [Fact]
+    public void Parse_SpecVersion_HigherMinor_Accepted()
+    {
+        // VH-5: Accept documents whose major version matches, regardless of minor
+        var json = """{"specVersion":"1.99","entries":[]}""";
+        var catalog = AiCatalogParser.Parse(json);
+        Assert.Equal("1.99", catalog.SpecVersion);
+    }
+
+    [Fact]
+    public void Parse_SpecVersion_UnsupportedMajor_Rejected()
+    {
+        // VH-6: Reject documents whose major version is higher with informative error
+        var json = """{"specVersion":"2.0","entries":[]}""";
+        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
+        Assert.Contains("unsupported major version", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("2", ex.Message);
+    }
+
+    [Fact]
+    public void Parse_SpecVersion_NoMinor_Rejected()
+    {
+        // VH-N02: No minor component
+        var json = """{"specVersion":"1","entries":[]}""";
+        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
+        Assert.Contains("Major.Minor", ex.Message);
+    }
+
+    [Fact]
+    public void Parse_SpecVersion_ExtraSegment_Rejected()
+    {
+        // VH-N03: Three segments
+        var json = """{"specVersion":"1.0.0","entries":[]}""";
+        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
+        Assert.Contains("Major.Minor", ex.Message);
+    }
+
+    [Fact]
+    public void Parse_SpecVersion_NegativeNumber_Rejected()
+    {
+        // VH-N04: Negative
+        var json = """{"specVersion":"-1.0","entries":[]}""";
+        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
+        Assert.Contains("non-negative integers", ex.Message);
+    }
+
+    [Fact]
+    public void Parse_SpecVersion_NonInteger_Rejected()
+    {
+        // VH-N05: Non-integer components
+        var json = """{"specVersion":"a.b","entries":[]}""";
+        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
+        Assert.Contains("non-negative integers", ex.Message);
+    }
+
+    [Fact]
+    public void Parse_UnknownFields_SilentlyIgnored()
+    {
+        // VH-2: Unknown fields within same major version are silently ignored
+        var json = """{"specVersion":"1.0","entries":[],"x-custom":"value","futureField":42}""";
+        var catalog = AiCatalogParser.Parse(json);
+        Assert.NotNull(catalog);
+        Assert.Equal("1.0", catalog.SpecVersion);
+    }
+
     private static void VerifyHostExpectations(JsonElement hostExpected, Models.HostInfo host)
     {
         if (hostExpected.TryGetProperty("display_name", out var dn))
@@ -135,10 +194,17 @@ public class ParsingTests
             if (entryExpected.TryGetProperty("has_url", out var hasUrl))
                 Assert.Equal(hasUrl.GetBoolean(), entry.Url is not null);
 
+            if (entryExpected.TryGetProperty("has_data", out var hasData))
+            {
+                bool actualHasData = entry.Data is not null && entry.Data.Value.ValueKind != JsonValueKind.Undefined;
+                Assert.Equal(hasData.GetBoolean(), actualHasData);
+            }
+
+            // Legacy: also accept has_inline mapped to Data for fixtures that may still use it
             if (entryExpected.TryGetProperty("has_inline", out var hasInline))
             {
-                bool actualHasInline = entry.Inline is not null && entry.Inline.Value.ValueKind != JsonValueKind.Undefined;
-                Assert.Equal(hasInline.GetBoolean(), actualHasInline);
+                bool actualHasData = entry.Data is not null && entry.Data.Value.ValueKind != JsonValueKind.Undefined;
+                Assert.Equal(hasInline.GetBoolean(), actualHasData);
             }
 
             if (entryExpected.TryGetProperty("has_version", out var hasVersion))
@@ -162,16 +228,30 @@ public class ParsingTests
             if (entryExpected.TryGetProperty("has_metadata", out var hasMeta))
                 Assert.Equal(hasMeta.GetBoolean(), entry.Metadata is not null);
 
-            if (entryExpected.TryGetProperty("inline_is_object", out var isObj) && isObj.GetBoolean())
+            if (entryExpected.TryGetProperty("data_is_object", out var isObj) && isObj.GetBoolean())
             {
-                Assert.NotNull(entry.Inline);
-                Assert.Equal(JsonValueKind.Object, entry.Inline.Value.ValueKind);
+                Assert.NotNull(entry.Data);
+                Assert.Equal(JsonValueKind.Object, entry.Data.Value.ValueKind);
             }
 
-            if (entryExpected.TryGetProperty("inline_is_string", out var isStr) && isStr.GetBoolean())
+            // Legacy support for inline_is_object
+            if (entryExpected.TryGetProperty("inline_is_object", out var isObjLegacy) && isObjLegacy.GetBoolean())
             {
-                Assert.NotNull(entry.Inline);
-                Assert.Equal(JsonValueKind.String, entry.Inline.Value.ValueKind);
+                Assert.NotNull(entry.Data);
+                Assert.Equal(JsonValueKind.Object, entry.Data.Value.ValueKind);
+            }
+
+            if (entryExpected.TryGetProperty("data_is_string", out var isStr) && isStr.GetBoolean())
+            {
+                Assert.NotNull(entry.Data);
+                Assert.Equal(JsonValueKind.String, entry.Data.Value.ValueKind);
+            }
+
+            // Legacy support for inline_is_string
+            if (entryExpected.TryGetProperty("inline_is_string", out var isStrLegacy) && isStrLegacy.GetBoolean())
+            {
+                Assert.NotNull(entry.Data);
+                Assert.Equal(JsonValueKind.String, entry.Data.Value.ValueKind);
             }
 
             if (entryExpected.TryGetProperty("trust_manifest_identity_matches", out var tmMatch) && tmMatch.GetBoolean())
@@ -198,23 +278,43 @@ public class ParsingTests
                 Assert.Equal(provCount.GetInt32(), entry.TrustManifest.Provenance?.Count ?? 0);
             }
 
-            // Bundle assertions
-            if (entryExpected.TryGetProperty("is_bundle", out var isBundle) && isBundle.GetBoolean())
+            // Nested catalog entry assertions (formerly "bundle")
+            if (entryExpected.TryGetProperty("is_nested_catalog", out var isNested) && isNested.GetBoolean())
             {
                 Assert.Equal("application/ai-catalog+json", entry.MediaType);
-                Assert.NotNull(entry.Inline);
-                Assert.Equal(JsonValueKind.Object, entry.Inline.Value.ValueKind);
+                Assert.NotNull(entry.Data);
+                Assert.Equal(JsonValueKind.Object, entry.Data.Value.ValueKind);
 
                 if (entryExpected.TryGetProperty("nested_spec_version", out var nsv))
                 {
-                    Assert.True(entry.Inline.Value.TryGetProperty("specVersion", out var sv));
+                    Assert.True(entry.Data.Value.TryGetProperty("specVersion", out var sv));
                     Assert.Equal(nsv.GetString(), sv.GetString());
                 }
 
                 if (entryExpected.TryGetProperty("nested_entry_count", out var nec))
                 {
-                    Assert.True(entry.Inline.Value.TryGetProperty("entries", out var ne));
+                    Assert.True(entry.Data.Value.TryGetProperty("entries", out var ne));
                     Assert.Equal(nec.GetInt32(), ne.GetArrayLength());
+                }
+            }
+
+            // Legacy support for is_bundle
+            if (entryExpected.TryGetProperty("is_bundle", out var isBundle) && isBundle.GetBoolean())
+            {
+                Assert.Equal("application/ai-catalog+json", entry.MediaType);
+                Assert.NotNull(entry.Data);
+                Assert.Equal(JsonValueKind.Object, entry.Data.Value.ValueKind);
+
+                if (entryExpected.TryGetProperty("nested_spec_version", out var nsv2))
+                {
+                    Assert.True(entry.Data.Value.TryGetProperty("specVersion", out var sv2));
+                    Assert.Equal(nsv2.GetString(), sv2.GetString());
+                }
+
+                if (entryExpected.TryGetProperty("nested_entry_count", out var nec2))
+                {
+                    Assert.True(entry.Data.Value.TryGetProperty("entries", out var ne2));
+                    Assert.Equal(nec2.GetInt32(), ne2.GetArrayLength());
                 }
             }
 

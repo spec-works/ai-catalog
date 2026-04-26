@@ -10,6 +10,9 @@ namespace SpecWorks.AiCatalog.Validation;
 /// </summary>
 public static partial class AiCatalogValidator
 {
+    /// <summary>Recommended maximum nesting depth for nested catalog entries (NC-3, SC-3).</summary>
+    internal const int DefaultMaxNestingDepth = 4;
+
     private static readonly HashSet<string> s_weakDigestAlgorithms = new(StringComparer.OrdinalIgnoreCase)
     {
         "md5", "sha1"
@@ -18,8 +21,6 @@ public static partial class AiCatalogValidator
     /// <summary>
     /// Validates a catalog and auto-detects the highest conformance level.
     /// </summary>
-    /// <param name="catalog">The catalog to validate.</param>
-    /// <returns>A <see cref="ValidationResult"/> with detected conformance level.</returns>
     public static ValidationResult Validate(Models.AiCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(catalog);
@@ -27,7 +28,6 @@ public static partial class AiCatalogValidator
         var errors = new List<ValidationDiagnostic>();
         var warnings = new List<ValidationDiagnostic>();
 
-        // Always validate Minimal (core structural rules)
         ValidateMinimal(catalog, errors, warnings);
 
         if (errors.Count > 0)
@@ -40,7 +40,6 @@ public static partial class AiCatalogValidator
             };
         }
 
-        // Check for Discoverable
         var discoverableErrors = new List<ValidationDiagnostic>();
         ValidateDiscoverable(catalog, discoverableErrors, warnings);
 
@@ -55,7 +54,6 @@ public static partial class AiCatalogValidator
             };
         }
 
-        // Check for Trusted
         var trustedErrors = new List<ValidationDiagnostic>();
         ValidateTrusted(catalog, trustedErrors, warnings);
 
@@ -81,9 +79,6 @@ public static partial class AiCatalogValidator
     /// <summary>
     /// Validates a catalog against a specific conformance level.
     /// </summary>
-    /// <param name="catalog">The catalog to validate.</param>
-    /// <param name="level">The conformance level to validate against.</param>
-    /// <returns>A <see cref="ValidationResult"/> for the specified level.</returns>
     public static ValidationResult Validate(Models.AiCatalog catalog, ConformanceLevel level)
     {
         ArgumentNullException.ThrowIfNull(catalog);
@@ -91,7 +86,6 @@ public static partial class AiCatalogValidator
         var errors = new List<ValidationDiagnostic>();
         var warnings = new List<ValidationDiagnostic>();
 
-        // Minimal is always validated
         ValidateMinimal(catalog, errors, warnings);
 
         if (level >= ConformanceLevel.Discoverable)
@@ -121,15 +115,24 @@ public static partial class AiCatalogValidator
         }
         else
         {
-            // Warn on non-Major.Minor format per TD-2
+            // VH-1: Must be Major.Minor format
             if (!MajorMinorPattern().IsMatch(catalog.SpecVersion))
             {
-                warnings.Add(new(DiagnosticSeverity.Warning,
-                    $"specVersion '{catalog.SpecVersion}' is not in Major.Minor format", "specVersion"));
+                var dotParts = catalog.SpecVersion.Split('.');
+                if (dotParts.Length == 2)
+                {
+                    errors.Add(new(DiagnosticSeverity.Error,
+                        $"specVersion major and minor components must be non-negative integers, found '{catalog.SpecVersion}'", "specVersion"));
+                }
+                else
+                {
+                    errors.Add(new(DiagnosticSeverity.Error,
+                        $"specVersion must be in Major.Minor format (e.g., '1.0'), found '{catalog.SpecVersion}'", "specVersion"));
+                }
             }
         }
 
-        // entries is required (already guaranteed by parser, but validate for direct construction)
+        // entries is required
         if (catalog.Entries is null)
         {
             errors.Add(new(DiagnosticSeverity.Error, "missing required field: entries", "entries"));
@@ -147,24 +150,10 @@ public static partial class AiCatalogValidator
         // Check identifier+version uniqueness
         ValidateIdentifierUniqueness(catalog.Entries, errors);
 
-        // Validate collections if present
-        if (catalog.Collections is not null)
-        {
-            for (int i = 0; i < catalog.Collections.Count; i++)
-            {
-                ValidateCollectionReference(catalog.Collections[i], $"collections[{i}]", errors, warnings);
-            }
-        }
+        // ME-2: Validate metadata keys (reject empty string keys)
+        ValidateMetadataKeys(catalog.Metadata, "metadata", errors);
 
-        // Warn on unknown top-level extension properties (per Darrel's closed schema directive)
-        if (catalog.ExtensionData is not null)
-        {
-            foreach (var key in catalog.ExtensionData.Keys)
-            {
-                warnings.Add(new(DiagnosticSeverity.Warning,
-                    $"unknown property '{key}' at top level", key));
-            }
-        }
+        // VH-2: Unknown fields within same major version are silently ignored (no warnings)
     }
 
     private static void ValidateEntry(CatalogEntry entry, string prefix,
@@ -186,19 +175,19 @@ public static partial class AiCatalogValidator
             errors.Add(new(DiagnosticSeverity.Error, "missing required field: mediaType", $"{prefix}.mediaType"));
         }
 
-        // url/inline exclusivity
+        // url/data exclusivity (CE-5: Entry MUST contain exactly one of url or data)
         bool hasUrl = entry.Url is not null;
-        bool hasInline = entry.Inline is not null && entry.Inline.Value.ValueKind != JsonValueKind.Undefined;
+        bool hasData = entry.Data is not null && entry.Data.Value.ValueKind != JsonValueKind.Undefined;
 
-        if (hasUrl && hasInline)
+        if (hasUrl && hasData)
         {
             errors.Add(new(DiagnosticSeverity.Error,
-                $"{prefix} must have exactly one of 'url' or 'inline', found both", prefix));
+                $"{prefix} must have exactly one of 'url' or 'data', found both", prefix));
         }
-        else if (!hasUrl && !hasInline)
+        else if (!hasUrl && !hasData)
         {
             errors.Add(new(DiagnosticSeverity.Error,
-                $"{prefix} must have exactly one of 'url' or 'inline'", prefix));
+                $"{prefix} must have exactly one of 'url' or 'data'", prefix));
         }
 
         // URL HTTPS check
@@ -225,43 +214,14 @@ public static partial class AiCatalogValidator
             ValidateTrustManifest(entry.TrustManifest, entry.Identifier, $"{prefix}.trustManifest", errors, warnings);
         }
 
-        // Inline bundle validation (if mediaType is ai-catalog+json)
-        if (hasInline && entry.MediaType == "application/ai-catalog+json" && entry.Inline is not null)
+        // Nested catalog entry validation (if mediaType is ai-catalog+json)
+        if (hasData && entry.MediaType == "application/ai-catalog+json" && entry.Data is not null)
         {
-            ValidateInlineBundle(entry.Inline.Value, prefix, errors, warnings);
+            ValidateNestedCatalogEntry(entry.Data.Value, prefix, errors, warnings, 1);
         }
 
-        // Warn on unknown extension properties
-        if (entry.ExtensionData is not null)
-        {
-            foreach (var key in entry.ExtensionData.Keys)
-            {
-                warnings.Add(new(DiagnosticSeverity.Warning,
-                    $"unknown property '{key}' on {prefix}", $"{prefix}.{key}"));
-            }
-        }
-    }
-
-    private static void ValidateCollectionReference(CollectionReference collection, string prefix,
-        List<ValidationDiagnostic> errors, List<ValidationDiagnostic> warnings)
-    {
-        var missingFields = new List<string>();
-
-        if (string.IsNullOrEmpty(collection.DisplayName))
-            missingFields.Add("displayName");
-
-        if (string.IsNullOrEmpty(collection.Url))
-            missingFields.Add("url");
-
-        if (missingFields.Count > 0)
-        {
-            errors.Add(new(DiagnosticSeverity.Error,
-                $"missing required fields on {prefix}: {string.Join(", ", missingFields)}", prefix));
-        }
-        else
-        {
-            ValidateHttpsUrl(collection.Url, $"{prefix}.url", errors, warnings);
-        }
+        // ME-2: Validate metadata keys on entry
+        ValidateMetadataKeys(entry.Metadata, $"{prefix}.metadata", errors);
     }
 
     private static void ValidatePublisher(Publisher publisher, string prefix,
@@ -285,7 +245,6 @@ public static partial class AiCatalogValidator
     private static void ValidateTrustManifest(TrustManifest tm, string? entryIdentifier, string prefix,
         List<ValidationDiagnostic> errors, List<ValidationDiagnostic> warnings)
     {
-        // identity is required
         if (string.IsNullOrEmpty(tm.Identity))
         {
             errors.Add(new(DiagnosticSeverity.Error,
@@ -294,19 +253,16 @@ public static partial class AiCatalogValidator
         else if (entryIdentifier is not null && !string.IsNullOrEmpty(entryIdentifier)
                  && tm.Identity != entryIdentifier)
         {
-            // TD-4: exact string comparison
             errors.Add(new(DiagnosticSeverity.Error,
                 $"trustManifest.identity '{tm.Identity}' does not match entry identifier '{entryIdentifier}'",
                 $"{prefix}.identity"));
         }
 
-        // TrustSchema validation
         if (tm.TrustSchema is not null)
         {
             ValidateTrustSchema(tm.TrustSchema, $"{prefix}.trustSchema", errors, warnings);
         }
 
-        // Attestation validation
         if (tm.Attestations is not null)
         {
             for (int i = 0; i < tm.Attestations.Count; i++)
@@ -315,7 +271,6 @@ public static partial class AiCatalogValidator
             }
         }
 
-        // Provenance validation
         if (tm.Provenance is not null)
         {
             for (int i = 0; i < tm.Provenance.Count; i++)
@@ -323,6 +278,9 @@ public static partial class AiCatalogValidator
                 ValidateProvenanceLink(tm.Provenance[i], $"{prefix}.provenance[{i}]", errors, warnings);
             }
         }
+
+        // ME-2: Validate metadata keys on trust manifest
+        ValidateMetadataKeys(tm.Metadata, $"{prefix}.metadata", errors);
     }
 
     private static void ValidateTrustSchema(TrustSchema schema, string prefix,
@@ -363,14 +321,12 @@ public static partial class AiCatalogValidator
                 $"missing required fields on attestation: {string.Join(", ", missingFields)}", prefix));
         }
 
-        // Size must be non-negative
         if (attestation.Size is not null && attestation.Size < 0)
         {
             errors.Add(new(DiagnosticSeverity.Error,
                 $"attestation size must be a non-negative integer, got {attestation.Size}", $"{prefix}.size"));
         }
 
-        // Weak digest rejection (TD-5)
         if (attestation.Digest is not null)
         {
             ValidateDigest(attestation.Digest, $"{prefix}.digest", errors, warnings);
@@ -394,7 +350,6 @@ public static partial class AiCatalogValidator
                 $"missing required fields on {prefix}: {string.Join(", ", missingFields)}", prefix));
         }
 
-        // Weak digest rejection on sourceDigest
         if (link.SourceDigest is not null)
         {
             ValidateDigest(link.SourceDigest, $"{prefix}.sourceDigest", errors, warnings);
@@ -411,7 +366,6 @@ public static partial class AiCatalogValidator
             if (string.IsNullOrEmpty(entry.Identifier))
                 continue;
 
-            // Key is (identifier, version) — version may be null
             var key = entry.Version is not null
                 ? $"{entry.Identifier}\0{entry.Version}"
                 : $"{entry.Identifier}\0";
@@ -430,6 +384,21 @@ public static partial class AiCatalogValidator
                         $"duplicate identifier '{entry.Identifier}' without version differentiation",
                         $"entries[{i}]"));
                 }
+            }
+        }
+    }
+
+    private static void ValidateMetadataKeys(JsonElement? metadata, string prefix, List<ValidationDiagnostic> errors)
+    {
+        if (metadata is null || metadata.Value.ValueKind != JsonValueKind.Object)
+            return;
+
+        foreach (var prop in metadata.Value.EnumerateObject())
+        {
+            if (string.IsNullOrEmpty(prop.Name))
+            {
+                errors.Add(new(DiagnosticSeverity.Error,
+                    "metadata key must be a non-empty string", $"{prefix}"));
             }
         }
     }
@@ -456,7 +425,6 @@ public static partial class AiCatalogValidator
     private static void ValidateRfc3339DateTime(string value, string prefix,
         List<ValidationDiagnostic> errors, List<ValidationDiagnostic> warnings)
     {
-        // Must be a full date-time, not just a date
         if (DateOnlyPattern().IsMatch(value))
         {
             errors.Add(new(DiagnosticSeverity.Error,
@@ -474,7 +442,6 @@ public static partial class AiCatalogValidator
     private static void ValidateHttpsUrl(string url, string prefix,
         List<ValidationDiagnostic> errors, List<ValidationDiagnostic> warnings)
     {
-        // data: URIs are allowed
         if (url.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
             return;
 
@@ -485,29 +452,56 @@ public static partial class AiCatalogValidator
         }
     }
 
-    private static void ValidateInlineBundle(JsonElement inline, string prefix,
-        List<ValidationDiagnostic> errors, List<ValidationDiagnostic> warnings)
+    /// <summary>
+    /// Validates a nested catalog entry (formerly called "bundle").
+    /// Checks structure and enforces nesting depth limit (NC-3: max depth 4).
+    /// </summary>
+    private static void ValidateNestedCatalogEntry(JsonElement data, string prefix,
+        List<ValidationDiagnostic> errors, List<ValidationDiagnostic> warnings, int depth)
     {
-        if (inline.ValueKind != JsonValueKind.Object)
+        if (depth >= DefaultMaxNestingDepth)
         {
-            errors.Add(new(DiagnosticSeverity.Error,
-                $"inline catalog for {prefix} must be a JSON object", prefix));
+            warnings.Add(new(DiagnosticSeverity.Warning,
+                $"nested catalog depth exceeds recommended limit of {DefaultMaxNestingDepth}",
+                prefix));
             return;
         }
 
-        if (!inline.TryGetProperty("specVersion", out _))
+        if (data.ValueKind != JsonValueKind.Object)
         {
             errors.Add(new(DiagnosticSeverity.Error,
-                $"inline catalog for {prefix} is not a valid AI Catalog: missing required field specVersion",
-                $"{prefix}.inline"));
+                $"nested catalog entry for {prefix} must be a JSON object", prefix));
             return;
         }
 
-        if (!inline.TryGetProperty("entries", out var entriesEl) || entriesEl.ValueKind != JsonValueKind.Array)
+        if (!data.TryGetProperty("specVersion", out _))
         {
             errors.Add(new(DiagnosticSeverity.Error,
-                $"inline catalog for {prefix} is not a valid AI Catalog: missing required field entries",
-                $"{prefix}.inline"));
+                $"nested catalog entry for {prefix} is not a valid AI Catalog: missing required field specVersion",
+                $"{prefix}.data"));
+            return;
+        }
+
+        if (!data.TryGetProperty("entries", out var entriesEl) || entriesEl.ValueKind != JsonValueKind.Array)
+        {
+            errors.Add(new(DiagnosticSeverity.Error,
+                $"nested catalog entry for {prefix} is not a valid AI Catalog: missing required field entries",
+                $"{prefix}.data"));
+            return;
+        }
+
+        // Recursively check nested entries for further nesting
+        foreach (var nestedEntry in entriesEl.EnumerateArray())
+        {
+            if (nestedEntry.ValueKind != JsonValueKind.Object)
+                continue;
+
+            if (nestedEntry.TryGetProperty("mediaType", out var mt)
+                && mt.GetString() == "application/ai-catalog+json"
+                && nestedEntry.TryGetProperty("data", out var nestedData))
+            {
+                ValidateNestedCatalogEntry(nestedData, prefix, errors, warnings, depth + 1);
+            }
         }
     }
 
@@ -531,7 +525,6 @@ public static partial class AiCatalogValidator
     private static void ValidateTrusted(Models.AiCatalog catalog,
         List<ValidationDiagnostic> errors, List<ValidationDiagnostic> warnings)
     {
-        // At least one entry or host must have a trust manifest
         bool anyTrust = false;
 
         if (catalog.Host?.TrustManifest is not null)

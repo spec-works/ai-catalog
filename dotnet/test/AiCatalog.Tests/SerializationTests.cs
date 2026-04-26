@@ -32,9 +32,6 @@ public class SerializationTests
         Assert.Equal(catalog1.SpecVersion, catalog2.SpecVersion);
         Assert.Equal(catalog1.Entries.Count, catalog2.Entries.Count);
 
-        // Verify same number of collections
-        Assert.Equal(catalog1.Collections?.Count ?? 0, catalog2.Collections?.Count ?? 0);
-
         // Verify host round-trips
         Assert.Equal(catalog1.Host is not null, catalog2.Host is not null);
         if (catalog1.Host is not null && catalog2.Host is not null)
@@ -57,10 +54,10 @@ public class SerializationTests
             Assert.Equal(e1.Description, e2.Description);
             Assert.Equal(e1.UpdatedAt, e2.UpdatedAt);
 
-            // Inline round-trip
-            bool e1HasInline = e1.Inline is not null && e1.Inline.Value.ValueKind != JsonValueKind.Undefined;
-            bool e2HasInline = e2.Inline is not null && e2.Inline.Value.ValueKind != JsonValueKind.Undefined;
-            Assert.Equal(e1HasInline, e2HasInline);
+            // Data (embedded content) round-trip
+            bool e1HasData = e1.Data is not null && e1.Data.Value.ValueKind != JsonValueKind.Undefined;
+            bool e2HasData = e2.Data is not null && e2.Data.Value.ValueKind != JsonValueKind.Undefined;
+            Assert.Equal(e1HasData, e2HasData);
         }
 
         // Verify metadata round-trips
@@ -70,7 +67,6 @@ public class SerializationTests
             Assert.NotNull(catalog2.Metadata);
             AssertJsonEquivalent(catalog1.Metadata.Value, catalog2.Metadata.Value);
 
-            // Also check entry metadata
             for (int i = 0; i < catalog1.Entries.Count; i++)
             {
                 if (catalog1.Entries[i].Metadata is not null)
@@ -84,12 +80,8 @@ public class SerializationTests
         }
     }
 
-    /// <summary>
-    /// Compares two JsonElements for structural equivalence (ignoring whitespace differences).
-    /// </summary>
     private static void AssertJsonEquivalent(JsonElement a, JsonElement b)
     {
-        // Normalize by re-serializing both with consistent formatting
         var optionsCompact = new JsonSerializerOptions { WriteIndented = false };
         var jsonA = JsonSerializer.Serialize(a, optionsCompact);
         var jsonB = JsonSerializer.Serialize(b, optionsCompact);
@@ -118,8 +110,30 @@ public class SerializationTests
         Assert.True(root.TryGetProperty("specVersion", out _));
         Assert.True(root.TryGetProperty("entries", out _));
         Assert.False(root.TryGetProperty("host", out _));
-        Assert.False(root.TryGetProperty("collections", out _));
         Assert.False(root.TryGetProperty("metadata", out _));
+    }
+
+    [Fact]
+    public void Serialize_EmitsDataNotInline()
+    {
+        var catalog = new Models.AiCatalog
+        {
+            SpecVersion = "1.0",
+            Entries = [new Models.CatalogEntry
+            {
+                Identifier = "urn:test:entry",
+                DisplayName = "Test",
+                MediaType = "application/json",
+                Data = JsonDocument.Parse("{}").RootElement,
+            }]
+        };
+
+        var json = AiCatalogSerializer.Serialize(catalog);
+        using var doc = JsonDocument.Parse(json);
+        var entry = doc.RootElement.GetProperty("entries")[0];
+
+        Assert.True(entry.TryGetProperty("data", out _));
+        Assert.False(entry.TryGetProperty("inline", out _));
     }
 
     [Fact]

@@ -12,7 +12,7 @@ namespace SpecWorks.AiCatalog.Cli.Commands;
 /// </summary>
 public static class InstallCommand
 {
-    private const string McpConfigMediaType = "application/vnd.mcp.server+json";
+    private const string McpConfigMediaType = "application/vnd.mcp.server-card+json";
     private const string SkillsDirectory = ".ai-catalog/skills";
     private const string McpConfigPath = ".ai-catalog/mcp-config.json";
 
@@ -97,8 +97,9 @@ public static class InstallCommand
             return typeHint.ToLowerInvariant();
         }
 
-        // Auto-detect based on mediaType
-        if (entry.MediaType.Contains("mcp", StringComparison.OrdinalIgnoreCase))
+        // Auto-detect based on mediaType (mcp-server-card or mcp-server)
+        if (entry.MediaType.Contains("mcp-server-card", StringComparison.OrdinalIgnoreCase)
+            || entry.MediaType.Contains("mcp", StringComparison.OrdinalIgnoreCase))
         {
             return "mcp";
         }
@@ -192,19 +193,19 @@ public static class InstallCommand
             await File.WriteAllBytesAsync(filePath, content);
             Console.WriteLine($"Downloaded to {filePath}");
         }
-        else if (entry.Inline.HasValue)
+        else if (entry.Data.HasValue)
         {
             var fileName = SanitizeName(entry.Identifier);
             var ext = GuessExtension(entry.MediaType);
             var filePath = Path.Combine(skillsDir, $"{fileName}{ext}");
 
-            var json = JsonSerializer.Serialize(entry.Inline.Value, new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(entry.Data.Value, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(filePath, json);
-            Console.WriteLine($"Inline content saved to {filePath}");
+            Console.WriteLine($"Embedded content saved to {filePath}");
         }
         else
         {
-            Console.Error.WriteLine("Warning: entry has neither url nor inline content");
+            Console.Error.WriteLine("Warning: entry has neither url nor data content");
         }
 
         Console.WriteLine($"Installed: {entry.DisplayName}");

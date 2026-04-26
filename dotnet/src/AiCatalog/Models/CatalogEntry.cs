@@ -5,7 +5,7 @@ namespace SpecWorks.AiCatalog.Models;
 
 /// <summary>
 /// A single catalog entry describing an AI artifact.
-/// Must have exactly one of <see cref="Url"/> or <see cref="Inline"/>.
+/// Must have exactly one of <see cref="Url"/> or <see cref="Data"/>.
 /// </summary>
 public sealed class CatalogEntry
 {
@@ -21,15 +21,15 @@ public sealed class CatalogEntry
     [JsonPropertyName("mediaType")]
     public string MediaType { get; set; } = string.Empty;
 
-    /// <summary>URL to the artifact. Mutually exclusive with <see cref="Inline"/>.</summary>
+    /// <summary>URL to the artifact. Mutually exclusive with <see cref="Data"/>.</summary>
     [JsonPropertyName("url")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Url { get; set; }
 
-    /// <summary>Inline artifact content (opaque JSON value). Mutually exclusive with <see cref="Url"/>.</summary>
-    [JsonPropertyName("inline")]
+    /// <summary>Embedded artifact content (opaque JSON value). Mutually exclusive with <see cref="Url"/>.</summary>
+    [JsonPropertyName("data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public JsonElement? Inline { get; set; }
+    public JsonElement? Data { get; set; }
 
     /// <summary>Optional version string for multi-version entries.</summary>
     [JsonPropertyName("version")]
@@ -66,7 +66,7 @@ public sealed class CatalogEntry
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public JsonElement? Metadata { get; set; }
 
-    /// <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+    /// <summary>Unknown properties preserved for forward compatibility (MUST ignore per VH-2).</summary>
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }

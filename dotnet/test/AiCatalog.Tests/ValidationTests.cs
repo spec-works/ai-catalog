@@ -22,14 +22,12 @@ public class ValidationTests
         var catalog = AiCatalogParser.Parse(inputJson);
         var result = AiCatalogValidator.Validate(catalog);
 
-        // Should be valid
         if (expected.TryGetProperty("valid", out var valid) && valid.GetBoolean())
         {
             Assert.True(result.IsValid,
                 $"Expected valid catalog for '{name}', got errors: [{string.Join(", ", result.Errors.Select(e => e.Message))}]");
         }
 
-        // Verify conformance level
         if (expected.TryGetProperty("conformance_level", out var levelProp))
         {
             var expectedLevel = levelProp.GetString() switch
@@ -121,17 +119,17 @@ public class ValidationTests
                 Identifier = "urn:test:entry",
                 DisplayName = "Test Entry",
                 MediaType = "application/json",
-                // No url, no inline
+                // No url, no data
             }]
         };
 
         var result = AiCatalogValidator.Validate(catalog);
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.Message.Contains("url") && e.Message.Contains("inline"));
+        Assert.Contains(result.Errors, e => e.Message.Contains("url") && e.Message.Contains("data"));
     }
 
     [Fact]
-    public void Validate_BothUrlAndInline_ReportsError()
+    public void Validate_BothUrlAndData_ReportsError()
     {
         var catalog = new Models.AiCatalog
         {
@@ -142,7 +140,7 @@ public class ValidationTests
                 DisplayName = "Test Entry",
                 MediaType = "application/json",
                 Url = "https://example.com/test.json",
-                Inline = JsonDocument.Parse("{}").RootElement,
+                Data = JsonDocument.Parse("{}").RootElement,
             }]
         };
 
@@ -249,7 +247,6 @@ public class ValidationTests
             }]
         };
 
-        // Validate against Discoverable — should fail (no host)
         var result = AiCatalogValidator.Validate(catalog, ConformanceLevel.Discoverable);
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Message.Contains("host"));
@@ -297,8 +294,9 @@ public class ValidationTests
     }
 
     [Fact]
-    public void Validate_UnknownTopLevelFields_ProducesWarnings()
+    public void Validate_UnknownTopLevelFields_SilentlyIgnored()
     {
+        // VH-2: Unknown fields within same major version MUST be ignored
         var json = """
         {
             "specVersion": "1.0",
@@ -310,6 +308,76 @@ public class ValidationTests
         var result = AiCatalogValidator.Validate(catalog);
 
         Assert.True(result.IsValid);
-        Assert.Contains(result.Warnings, w => w.Message.Contains("unknown property") && w.Message.Contains("x-custom"));
+        // No warnings about unknown fields per VH-2
+        Assert.DoesNotContain(result.Warnings, w => w.Message.Contains("unknown property"));
+    }
+
+    [Fact]
+    public void Validate_SpecVersionInvalidFormat_ReportsError()
+    {
+        // VH-1: Must be Major.Minor format
+        var catalog = new Models.AiCatalog
+        {
+            SpecVersion = "v1",
+            Entries = [new Models.CatalogEntry
+            {
+                Identifier = "urn:test:entry",
+                DisplayName = "Test",
+                MediaType = "application/json",
+                Url = "https://example.com/test.json"
+            }]
+        };
+
+        var result = AiCatalogValidator.Validate(catalog);
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Message.Contains("Major.Minor"));
+    }
+
+    [Fact]
+    public void Validate_MetadataEmptyKey_ReportsError()
+    {
+        // ME-2: Metadata keys MUST be non-empty strings
+        var json = """
+        {
+            "specVersion": "1.0",
+            "entries": [
+                {
+                    "identifier": "urn:test:entry",
+                    "displayName": "Test",
+                    "mediaType": "application/json",
+                    "url": "https://example.com/test.json"
+                }
+            ],
+            "metadata": {"": "empty key value"}
+        }
+        """;
+        var catalog = AiCatalogParser.Parse(json);
+        var result = AiCatalogValidator.Validate(catalog);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Message.Contains("metadata key") && e.Message.Contains("non-empty"));
+    }
+
+    [Fact]
+    public void Validate_MetadataValidKeys_Accepted()
+    {
+        var json = """
+        {
+            "specVersion": "1.0",
+            "entries": [
+                {
+                    "identifier": "urn:test:entry",
+                    "displayName": "Test",
+                    "mediaType": "application/json",
+                    "url": "https://example.com/test.json"
+                }
+            ],
+            "metadata": {"com.example.key": "value", "simple": 42}
+        }
+        """;
+        var catalog = AiCatalogParser.Parse(json);
+        var result = AiCatalogValidator.Validate(catalog);
+
+        Assert.True(result.IsValid);
     }
 }

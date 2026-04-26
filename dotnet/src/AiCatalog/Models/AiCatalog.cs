@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace SpecWorks.AiCatalog.Models;
 
 /// <summary>
-/// Top-level AI Catalog document containing entries and optional host, collections, and metadata.
+/// Top-level AI Catalog document containing entries and optional host and metadata.
 /// Maps to the root object of an <c>application/ai-catalog+json</c> document.
 /// </summary>
 public sealed class AiCatalog
@@ -22,17 +22,12 @@ public sealed class AiCatalog
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public HostInfo? Host { get; set; }
 
-    /// <summary>Optional collection references for partitioning the catalog.</summary>
-    [JsonPropertyName("collections")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<CollectionReference>? Collections { get; set; }
-
     /// <summary>Optional open metadata map for extension data.</summary>
     [JsonPropertyName("metadata")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public JsonElement? Metadata { get; set; }
 
-    /// <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
+    /// <summary>Unknown properties preserved for forward compatibility (MUST ignore per VH-2).</summary>
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using SpecWorks.AiCatalog.Models;
 
 namespace SpecWorks.AiCatalog.Parsing;
@@ -19,8 +20,11 @@ public class AiCatalogParseException : AiCatalogException
 /// Parses JSON into <see cref="AiCatalog"/> instances.
 /// Does NOT validate conformance — use <see cref="Validation.AiCatalogValidator"/> for that.
 /// </summary>
-public static class AiCatalogParser
+public static partial class AiCatalogParser
 {
+    /// <summary>The major version of the spec this library supports.</summary>
+    internal const int SupportedMajorVersion = 1;
+
     private static readonly JsonSerializerOptions s_options = new()
     {
         PropertyNameCaseInsensitive = false,
@@ -90,7 +94,7 @@ public static class AiCatalogParser
                 $"root document must be a JSON object, got {root.ValueKind.ToString().ToLowerInvariant()}");
         }
 
-        // Validate specVersion is present and correct type
+        // Validate specVersion is present, correct type, and valid format (VH-1, VH-4)
         ValidateSpecVersion(root);
 
         // Validate entries is present and correct type
@@ -138,6 +142,29 @@ public static class AiCatalogParser
         if (string.IsNullOrEmpty(specVersion))
         {
             throw new AiCatalogParseException("specVersion must not be empty");
+        }
+
+        // VH-1: specVersion MUST be "Major.Minor" with non-negative integers
+        if (!MajorMinorPattern().IsMatch(specVersion))
+        {
+            // Differentiate: does it have the right structure but non-integer/negative parts?
+            var dotParts = specVersion.Split('.');
+            if (dotParts.Length == 2)
+            {
+                // Has two segments but they aren't non-negative integers
+                throw new AiCatalogParseException(
+                    $"specVersion major and minor components must be non-negative integers, found '{specVersion}'");
+            }
+            throw new AiCatalogParseException(
+                $"specVersion must be in Major.Minor format (e.g., \"1.0\"), found '{specVersion}'");
+        }
+
+        // VH-5/VH-6: Check major version compatibility
+        var parts = specVersion.Split('.');
+        if (int.TryParse(parts[0], out var major) && major > SupportedMajorVersion)
+        {
+            throw new AiCatalogParseException(
+                $"specVersion '{specVersion}' has unsupported major version {major}; this library supports major version {SupportedMajorVersion}");
         }
     }
 
@@ -225,4 +252,7 @@ public static class AiCatalogParser
         JsonValueKind.Undefined => "undefined",
         _ => kind.ToString().ToLowerInvariant()
     };
+
+    [GeneratedRegex(@"^\d+\.\d+$")]
+    private static partial Regex MajorMinorPattern();
 }
