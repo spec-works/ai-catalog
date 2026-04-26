@@ -260,3 +260,26 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 
 **Shared fixture:** `testcases/marketplace-expected.json` already had `application/ai-catalog+json` (updated by Leon previously).
 
+### 2026-04-26T02:27 — Plugin Media Type Refactoring Complete
+
+**Delivered:** Refactored .NET MarketplaceConverter for unified plugin-as-catalog representation. All 210 tests passing (168 library + 42 CLI).
+
+**Breaking change applied per user directive:**
+- Removed `ClaudePluginMediaType` constant (`application/vnd.claude.code-plugin+json`)
+- Removed `CopilotPluginMediaType` constant (`application/vnd.copilot.plugin+json`)
+- All converted plugins now use `MediaType = "application/ai-catalog+json"`
+
+**Copilot plugins with skills:**
+- Skills become sub-entries in nested `Data` catalog (one CatalogEntry per skill)
+- Each skill sub-entry: `identifier = {plugin}:{skill-leaf-name}`, `mediaType = application/json`, `url = skill-path`
+- Parent entry uses `Data` instead of `Url` (respects url/data exclusivity per CE-5)
+
+**Claude plugins & plugins without skills:**
+- Keep `Url` pointing to manifest; consumer dereferences
+
+**Test results:** All 210 tests pass (168 library + 42 CLI). Coordinated with Pris (Python).
+
+**Orchestration log:** `.squad/orchestration-log/2026-04-26T022700Z-roy.md`
+
+**Status:** Ready for coordinated production release with Python library. Plugin model now unified across both implementations.
+

@@ -367,6 +367,37 @@ When `owner` has no `url`, converter generates synthetic `urn:marketplace:owner:
 
 **Consequence:** 4 collection-related fixtures deleted, 22+ files updated from `inline` to `data`, 14 new fixtures added for version handling and other PR #33 changes. Final count: 74 fixtures (32 positive, 40 negative, 2 marketplace).
 
+---
+
+### Plugin Representation Decision — Roy & Pris (2026-04-26)
+
+#### Plugin as Nested AI Catalog (User Decision, 2026-04-25T22:27)
+
+**Decision:** A plugin is NOT represented by a plugin-specific media type. A plugin is either an inline or referenced ai-catalog that lists the entries contained in the plugin.
+
+**Implementation:**
+- All converted plugin entries now use `mediaType = "application/ai-catalog+json"`
+- Copilot plugins with skills: skills become sub-entries inside a nested `data` field
+  - Each skill: `identifier = {plugin-id}:{skill-name}`, `mediaType = application/json`, `url = skill-path`
+- Copilot plugins without skills: use `url` from source field
+- Claude plugins: `url` points to manifest; consumer dereferences
+- URN prefix unchanged: `urn:claude:plugins:` remains valid as identifier scheme
+
+**Changes:**
+- `.NET MarketplaceConverter:` Removed `ClaudePluginMediaType`, `CopilotPluginMediaType` constants
+- `Python converter.py:` Removed `CLAUDE_PLUGIN_MEDIA_TYPE`, `COPILOT_PLUGIN_MEDIA_TYPE` constants
+- Shared fixture `testcases/marketplace-expected.json` updated for both implementations
+
+**Rationale:** User directive for explicit control over plugin representation. Plugins map to AI Catalog semantics for unified discovery and consumption.
+
+**Impact:**
+- Roy: 210 tests passing (168 library + 42 CLI)
+- Pris: 355 tests passing (ruff clean)
+- Coordinated breaking change across both languages
+- Ready for production release
+
+**Consequence:** Both implementations aligned. Nested catalog model enables structured skill discovery. Breaking change requires major version bump and release notes.
+
 ## Governance
 
 - All meaningful changes require team consensus

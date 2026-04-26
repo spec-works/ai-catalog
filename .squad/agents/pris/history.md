@@ -218,5 +218,39 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 - `testcases/marketplace-expected.json`: All 3 entries and expected assertions updated to `application/ai-catalog+json`.
 - Non-marketplace fixtures (`claude-plugin-entry.json`, `mixed-media-types.json`, `spec-example-multi-artifact.json`) still reference old media type — these are Leon/Roy's domain and not marketplace conversion outputs.
 
+### Plugin-as-Catalog Refactor (Darrel Directive)
+
+**Directive:** A plugin is NOT represented by a plugin-specific media type. A plugin is a nested ai-catalog entry whose url points to the manifest.
+
+**Changes made:**
+- `converter.py`: Replaced `CLAUDE_PLUGIN_MEDIA_TYPE` ("application/vnd.claude.code-plugin+json") with `AI_CATALOG_MEDIA_TYPE` ("application/ai-catalog+json"). Kept `CLAUDE_PLUGIN_URN_PREFIX` unchanged.
+- `test_cli.py`: Updated media type assertion in `test_convert_single_plugin`.
+- `test_integration.py`: Updated import from `CLAUDE_PLUGIN_MEDIA_TYPE` → `AI_CATALOG_MEDIA_TYPE`, all assertion references.
+- `testcases/marketplace-expected.json`: All 3 entries and expected assertions updated to `application/ai-catalog+json`.
+- Non-marketplace fixtures (`claude-plugin-entry.json`, `mixed-media-types.json`, `spec-example-multi-artifact.json`) still reference old media type — these are Leon/Roy's domain and not marketplace conversion outputs.
+
 **Test results:** 355 tests passing, ruff clean (0 errors).
+
+### 2026-04-26T02:27 — Plugin Media Type Refactoring Complete
+
+**Delivered:** Refactored .NET MarketplaceConverter for unified plugin-as-catalog representation. All 210 tests passing (168 library + 42 CLI).
+
+**Breaking change applied per user directive:**
+- Removed `ClaudePluginMediaType` constant (`application/vnd.claude.code-plugin+json`)
+- Removed `CopilotPluginMediaType` constant (`application/vnd.copilot.plugin+json`)
+- All converted plugins now use `MediaType = "application/ai-catalog+json"`
+
+**Copilot plugins with skills:**
+- Skills become sub-entries in nested `Data` catalog (one CatalogEntry per skill)
+- Each skill sub-entry: `identifier = {plugin}:{skill-leaf-name}`, `mediaType = application/json`, `url = skill-path`
+- Parent entry uses `Data` instead of `Url` (respects url/data exclusivity per CE-5)
+
+**Claude plugins & plugins without skills:**
+- Keep `Url` pointing to manifest; consumer dereferences
+
+**Test results:** All 210 tests pass (168 library + 42 CLI). Coordinated with Pris (Python).
+
+**Orchestration log:** `.squad/orchestration-log/2026-04-26T022700Z-roy.md`
+
+**Status:** Ready for coordinated production release with Python library. Plugin model now unified across both implementations.
 
