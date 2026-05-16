@@ -283,3 +283,40 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 
 **Status:** Ready for coordinated production release with Python library. Plugin model now unified across both implementations.
 
+### 2026-05-16: NuGet Packaging Readiness for SpecWorks.AiCatalog
+
+**Requested by:** Darrel Miller — prepare the .NET library for NuGet consumption by the A2A-Ask CLI.
+
+**What changed:**
+- `dotnet/src/AiCatalog/AiCatalog.csproj` now targets `net8.0;net10.0`, keeping a previous LTS target while adding the current LTS for package consumers.
+- Added `PackageProjectUrl` and linked the repo-root `README.md` into the package so `PackageReadmeFile` resolves during `dotnet pack`.
+- Added `.github/workflows/publish-nuget.yml` to restore, test, pack, upload artifacts, and publish on version tags/manual dispatch when `NUGET_API_KEY` is configured.
+- Updated `README.md` package matrix from .NET 8/9 to .NET 8/10 so the packaged readme matches the shipped TFMs.
+
+**Key learnings / patterns:**
+- `PackageReadmeFile` alone is insufficient when the README lives outside the project directory; the file must also be included as a packed item (`..\..\..\README.md` linked as `README.md`).
+- `dotnet package search SpecWorks.AiCatalog --source https://api.nuget.org/v3/index.json` returned no existing package, so `0.1.0` is still available.
+- Baseline/final validation commands for release readiness are `dotnet test .\dotnet\AiCatalog.sln -c Release --nologo` and `dotnet pack .\dotnet\src\AiCatalog\AiCatalog.csproj -c Release --nologo`.
+- There was no NuGet publish workflow under `.github/workflows/` before this readiness pass; only docs/squad automation existed.
+
+**Key file paths:**
+- Library package project: `dotnet/src/AiCatalog/AiCatalog.csproj`
+- Publish workflow: `.github/workflows/publish-nuget.yml`
+- Packaged readme source: `README.md`
+
+
+### 2026-05-16: A2A-Ask Catalog Integration Phase 1
+
+**Delivered in `C:\src\github\spec-works\A2A-Ask`:** Added `SpecWorks.AiCatalog` package consumption, catalog parsing/resolution helpers, a new `catalog` command group, and catalog-aware resolution for `discover`/`send`. Build and test now pass with `dotnet build dotnet/ --nologo` and `dotnet test dotnet/ --nologo` from the A2A-Ask repo root.
+
+**Architecture / patterns:**
+- Catalog resolution lives in A2A-Ask (`dotnet/src/A2A-Ask/Catalog/`) while parsing stays in `SpecWorks.AiCatalog` via `AiCatalogParser` from the NuGet package.
+- Phase 1 treats the `@catalog` token as a host/origin shorthand, not persisted alias storage; `CatalogInputResolver.ResolveCatalogDocumentUri()` maps host-like values to `https://...` by default and `http://localhost...` for local/dev hosts.
+- `CommonOptions.ResolveTargetAsync()` is the reuse point for catalog-aware command routing, with an overload that accepts `HttpClient` so integration tests can exercise catalog resolution against the in-process test server.
+- A2A candidate matching order implemented per Deckard proposal: exact identifier  exact display name (case-insensitive)  exact tag  substring fallback.
+
+**Key file paths:**
+- Catalog helpers: `dotnet/src/A2A-Ask/Catalog/TargetParser.cs`, `CatalogInputResolver.cs`, `ResolvedCatalogAgent.cs`
+- Command wiring: `dotnet/src/A2A-Ask/Commands/CatalogCommand.cs`, `CommonOptions.cs`, `DiscoverCommand.cs`, `SendCommand.cs`, `Program.cs`
+- Test coverage: `dotnet/tests/A2A-Ask.Tests/TargetParserTests.cs`, `ConsoleFormatterTests.cs`, `dotnet/tests/A2A-Ask.IntegrationTests/CatalogInputResolverTests.cs`, `dotnet/tests/TestAgentServer/Program.cs`
+- NuGet source mapping for the published package: `C:\src\github\spec-works\A2A-Ask\nuget.config`

@@ -600,3 +600,163 @@ The A2A-Ask toolbox architecture should follow clean separation of concerns:
 - `dotnet pack dotnet/src/AiCatalog/AiCatalog.csproj -c Release` initially failed with `NU5039: The readme file 'README.md' does not exist in the package.`
 - After the csproj update, `dotnet test dotnet/AiCatalog.sln -c Release --nologo && dotnet pack dotnet/src/AiCatalog/AiCatalog.csproj -c Release --nologo` succeeded.
 - `dotnet package search SpecWorks.AiCatalog --source https://api.nuget.org/v3/index.json` confirmed readiness for publication.
+
+---
+
+## A2A-Ask Catalog Integration Phase 1 (Roy, 2026-05-16)
+
+*Merged from roy-a2a-ask-phase1.md*
+
+### Decision
+
+For Phase 1, treat the `@catalog` portion of `@agent@catalog` and `@@catalog` as a **host/origin shorthand**, not persisted alias storage.
+
+### Why
+
+Deckard's proposal reserves persistent alias management for a later phase, but Darrel asked for working `@` syntax now. Interpreting the catalog token as a host/origin keeps Phase 1 immediately usable (`@open@localhost:1234`, `@@example.com`) without inventing local persistence, config files, or migration behavior ahead of Phase 2.
+
+### Implementation Notes
+
+- `CatalogInputResolver.ResolveCatalogDocumentUri()` maps host-like values to `https://...` by default.
+- Local/dev hosts (`localhost`, `127.0.0.1`, `[::1]`) map to `http://...` so in-repo testing stays frictionless.
+- The explicit NuGet package dependency is satisfied via `A2A-Ask\nuget.config`, which maps `SpecWorks.AiCatalog` to the published `0.1.0` nupkg in `ai-catalog\dotnet\src\AiCatalog\bin\Release`.
+
+### Consequences
+
+- Phase 1 users can exercise catalog routing immediately with stable, deterministic syntax.
+- Future alias persistence can layer on top by resolving stored aliases before falling back to host/origin shorthand.
+- Tests can validate catalog routing against local ASP.NET test hosts without adding more cross-repo wiring.
+
+---
+
+## A2A Discovery Helper Surface (Deckard, 2026-05-16)
+
+*Merged from deckard-a2a-helpers.md*
+
+### Summary
+
+Added minimal helper surface to `SpecWorks.AiCatalog` v0.1.0 to enable A2A-Ask and other consumers to discover and identify A2A Agent Card entries within AI Catalogs.
+
+### Changes Implemented
+
+#### 1. KnownMediaTypes Constants
+
+Created `dotnet/src/AiCatalog/KnownMediaTypes.cs` — static class with well-known media type constants:
+
+```csharp
+public static class KnownMediaTypes
+{
+    public const string AiCatalog = "application/ai-catalog+json";
+    public const string A2AAgentCard = "application/a2a-agent-card+json";
+    public const string A2AAgentCardVendor = "application/vnd.a2a.agent-card+json";
+}
+```
+
+**Rationale:**
+- Centralizes media type strings to reduce duplication across consumers
+- Enables future normalization of A2A vendor media type variants
+- Provides well-documented constants via XML documentation
+
+#### 2. CatalogEntry Extension Method
+
+Created `dotnet/src/AiCatalog/CatalogEntryExtensions.cs` with `IsA2AAgentCard()` method:
+
+```csharp
+public static bool IsA2AAgentCard(this CatalogEntry entry)
+```
+
+**Features:**
+- Case-insensitive media type comparison per RFC 2045
+- Recognizes both standard and vendor-prefixed A2A media types
+- Null-safe with proper exception handling
+- Handles null/empty MediaType values gracefully
+
+**Rationale:**
+- Eliminates scattered media type checking logic across consumers
+- RFC 2045 compliance ensures case-insensitive MIME type handling
+- Vendor media type aliasing supports ecosystem interoperability until standardization
+
+#### 3. Comprehensive Test Suite
+
+Created `dotnet/test/AiCatalog.Tests/A2ADiscoveryHelperTests.cs` with 12 unit tests:
+
+- Constant correctness (3 tests)
+- Standard A2A media type detection (1 test)
+- Vendor-prefixed A2A media type detection (1 test)
+- Case-insensitivity for both variants (2 tests)
+- Non-matching media types (1 test)
+- Edge cases: empty, null, partial matches (3 tests)
+- Null safety (1 test)
+
+**All 12 tests pass.**
+
+### Design Rationale
+
+#### Media Type Aliasing
+
+The ecosystem currently uses both `application/a2a-agent-card+json` and `application/vnd.a2a.agent-card+json`. Rather than forcing consumers to check both or requiring ecosystem-wide normalization immediately, this helper provides **aliasing** until standardization is complete.
+
+**Future path:** When the ecosystem standardizes on a single canonical A2A media type, a deprecation period can retire the vendor variant.
+
+#### Extension Method over Static Helper
+
+Extension method (`entry.IsA2AAgentCard()`) was chosen over static helper for ergonomics:
+- More discoverable when working with `CatalogEntry` objects in IDEs
+- Consistent with .NET conventions for domain model helpers
+- Enables future method chaining on catalog results
+
+#### Scope Constraints
+
+These helpers are **intentionally minimal**:
+- No HTTP fetching (left to consumers per architecture decision)
+- No resolution policy (left to consumers per architecture decision)
+- No A2A endpoint binding logic (belongs in A2A-Ask)
+- Pure data + validation layer
+
+### Test Coverage
+
+All tests pass; coverage includes:
+- Happy path: both media type variants
+- Case-insensitivity: 4 case variants per media type
+- Unhappy path: non-matching media types, empty strings
+- Edge cases: null entries, partial matches
+- Robustness: null safety
+
+### Impact
+
+#### A2A-Ask (Immediate Consumer)
+
+Enables A2A-Ask to:
+```csharp
+var entry = catalog.Entries.FirstOrDefault();
+if (entry.IsA2AAgentCard())
+{
+    // Resolve and invoke the agent
+}
+```
+
+#### Future Consumers
+
+Any tool consuming AI Catalogs can now:
+- Use `KnownMediaTypes` constants for consistency
+- Filter catalog entries by A2A agent card type via `IsA2AAgentCard()`
+- Avoid re-implementing media type detection logic
+
+### NuGet Package Implications
+
+- No new external dependencies added
+- No breaking changes to existing API
+- `SpecWorks.AiCatalog` v0.1.0 already published; helpers available to all consumers
+- Version remains stable; next release may consolidate with upcoming Toolbox work
+
+### Risks & Mitigations
+
+| Risk | Mitigation |
+|------|-----------|
+| Vendor media type never standardizes | Constants provide extensibility point for future registry pattern |
+| Case-sensitivity issues in ecosystem | RFC 2045 compliance ensures consistent handling across implementations |
+| A2A-Ask needs additional helpers | Minimal surface here; more helpers can be added if demand emerges |
+
+### Decision
+
+**Approved.** Implement minimal A2A discovery helpers as described. These enable A2A-Ask integration without scope creep or additional abstractions. Future Toolbox work (ADR-007 revival) will handle multi-catalog indexing and capability mapping as a separate phase.
