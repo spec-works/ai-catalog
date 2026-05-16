@@ -403,3 +403,200 @@ When `owner` has no `url`, converter generates synthetic `urn:marketplace:owner:
 - All meaningful changes require team consensus
 - Document architectural decisions here
 - Keep history focused on work, decisions focused on direction
+
+---
+
+## Catalog State Management in A2A-Ask (Deckard, Proposal)
+
+*Consolidated from deckard-catalog-cache.md*
+
+### Recommendation
+
+Treat catalog state as a **first-class local cache plus optional aliases**, stored under the existing A2A-Ask home directory but **kept separate from tokens**.
+
+- Store catalogs under `~/.a2a-ask/catalogs/`
+- Store user aliases under `~/.a2a-ask/catalog-aliases.json`
+- Keep tokens in `~/.a2a-ask/tokens/` and continue keying them by **canonical resolved agent URL**, not by catalog alias
+- Cache by **canonical catalog document URL + auth partition**, not just host origin
+- Persist a **cache envelope** containing both the raw catalog response and a normalized agent index
+- Use **TTL + HTTP validators (ETag/Last-Modified) + manual `--refresh`**
+- Default to **trusting a fresh cache**, then refresh on expiry or on resolution failure
+- Add lightweight **alias commands** for frequent catalogs, but keep cache behavior transparent by default
+
+This gives human users and AI agents a stable multi-step workflow without paying the network round-trip on every invocation, while still respecting auth boundaries and handling catalog drift cleanly.
+
+**Storage location:**
+```text
+~/.a2a-ask/
+├── tokens/
+├── catalogs/
+│   ├── index.json
+│   ├── <cache-key>.json
+│   └── <cache-key>.bin          # encrypted payload when required
+└── catalog-aliases.json
+```
+
+**Cache identity:** The primary cache key is the **canonical catalog document URL** plus **auth partition**:
+```text
+sha256(canonical-catalog-url + "\n" + auth-partition)
+```
+
+**Cache format:** Versioned **cache envelope** with both raw content and normalized projection:
+```json
+{
+  "schemaVersion": 1,
+  "locator": {
+    "requested": "https://example.com",
+    "catalogUrl": "https://example.com/.well-known/ai-catalog.json"
+  },
+  "authPartition": "anonymous",
+  "fetchedAt": "2026-05-16T12:34:56Z",
+  "expiresAt": "2026-05-16T12:49:56Z",
+  "etag": "...",
+  "lastModified": "...",
+  "contentHash": "sha256:...",
+  "rawCatalog": { "...": "server response JSON" },
+  "agents": [
+    {
+      "identifier": "tax",
+      "displayName": "Tax Agent",
+      "description": "...",
+      "tags": ["tax", "finance"],
+      "agentCardUrl": "https://example.com/agents/tax/agent-card.json",
+      "selectionTokens": ["tax", "Tax Agent", "finance"]
+    }
+  ]
+}
+```
+
+**Cache lifecycle:**
+- Default TTL: **15 minutes**
+- Within TTL: use cache without network call
+- After TTL: perform conditional GET using `ETag` and/or `Last-Modified`
+- If refresh fails, use stale cache with warning (fail if `--refresh` was supplied)
+- Manual controls: `--refresh` flag, `a2a-ask catalog refresh <locator>`, `a2a-ask catalog cache clear`
+
+**CLI surface:**
+- Existing: add `--refresh` to all catalog-aware commands
+- New: `a2a-ask catalog list <url> [--refresh]`, `a2a-ask catalog show <url> [--agent <selector>] [--refresh]`
+- New: `a2a-ask catalog refresh <locator>`, `a2a-ask catalog cache clear [<locator> | --all]`
+- New: `a2a-ask catalog alias add|remove|list`
+
+**AI-agent workflow:**
+- `catalog list` and `catalog show` fully machine-readable with JSON output
+- Include cache status, age/expiry, agent selector tokens
+- AI agents choose once and reuse selectors without re-fetching
+
+---
+
+## AI Catalog Discovery in A2A-Ask (Deckard, Proposal)
+
+*Consolidated from deckard-catalog-integration.md*
+
+### Recommendation
+
+Bring AI Catalog support into **A2A-Ask** by making the existing `discover`, `send`, `stream`, `task`, and `auth login` commands **catalog-aware**, while also adding a small explicit `catalog` command group for inspection.
+
+Use a **NuGet dependency on `SpecWorks.AiCatalog`** for parsing/models/validation, but keep **catalog HTTP resolution and agent selection logic inside A2A-Ask**. That avoids parser duplication, avoids a second local cross-repo `ProjectReference`, and keeps A2A-specific routing policy in the A2A tool.
+
+**Dependency strategy:**
+- Add **package reference** from A2A-Ask to `SpecWorks.AiCatalog`; do **not** reimplement catalog parsing
+- Boundary: `SpecWorks.AiCatalog` provides models/parsing/validation/constants/helpers; A2A-Ask owns resolution policy, selection policy, and A2A endpoint invocation
+- Do not: take dependency on `AiCatalog.Cli`, add local `ProjectReference`, or add environment-variable-based local source dependency
+
+**Discovery flow:**
+- Deterministic two-stage: resolve input to catalog/agent, then resolve to one A2A agent candidate
+- **Origin-only URL** (`https://example.com`) → try `/.well-known/ai-catalog.json` first; if no usable catalog, fall back to current A2A discovery
+- **Explicit JSON URL** → fetch once and inspect content shape (specVersion + entries = AI Catalog; name + agent-card-like = A2A agent card)
+- **Nested catalogs:** support inline and referenced nested entries with bounded recursion depth
+
+**Catalog resolution returns:**
+- Normalized list of `ResolvedCatalogAgent` records with catalog URL, entry identifier, display name, description/tags, agent-card URL, resolved agent endpoint
+
+**Agent selection policy:**
+- Exact catalog entry identifier match
+- Exact display name (case-insensitive)
+- Exact tag match
+- Substring fallback (case-insensitive)
+- Deterministic lexical scorer for multi-agent ambiguity
+- Auto-select only when top candidate clearly better
+- Fail with ambiguity message listing candidates with `@name` syntax otherwise
+
+**Target syntax: `@` addressing**
+```
+a2a-ask send @tax@intuit -m "question"      # Agent from specific catalog
+a2a-ask send @tax -m "question"             # Agent from any known catalog
+a2a-ask send https://example.com -m "..."   # Direct URL (unchanged)
+a2a-ask discover @tax@intuit                 # Discover specific agent
+a2a-ask catalog list https://example.com     # List agents in catalog
+```
+
+**Commands:**
+- Enhance existing: `discover`, `send`, `stream`, `task get/cancel`, `auth login` (accept `@` targets)
+- New explicit: `a2a-ask catalog list <url>`, `a2a-ask catalog show <url>`
+
+**Skill implications:** Update `a2a-ask-cli` skill to be **catalog-first**:
+1. If user gives host or catalog URL, run `a2a-ask catalog list <url> --output text` first
+2. If one candidate, proceed; if several, choose using intent and `@agentName@catalogAlias` syntax
+3. Run `discover`/`send`/`stream` with explicit `@` target
+
+**Files to modify in A2A-Ask:**
+- New: CatalogCommand.cs, TargetParser.cs, CatalogInputResolver.cs, CatalogAgentResolver.cs, CatalogSelectionPolicy.cs
+- Existing: Program.cs, CommonOptions.cs, DiscoverCommand.cs, SendCommand.cs, StreamCommand.cs, TaskCommand.cs, AuthLoginCommand.cs, ConsoleFormatter.cs, README.md, skills/a2a-ask-cli/SKILL.md
+- Tests: CatalogDiscoverTests.cs, CatalogSendTests.cs, TargetParserTests.cs, CatalogSelectionPolicyTests.cs
+
+---
+
+## A2A-Ask Toolbox Architecture (Deckard, Proposal)
+
+*Consolidated from deckard-toolbox-architecture.md*
+
+### Recommendation
+
+The A2A-Ask toolbox architecture should follow clean separation of concerns:
+
+**Core components:**
+- **Catalog resolution:** deterministic two-stage flow (input → catalog/agent → resolved endpoint)
+- **Token management:** keyed by canonical agent endpoint, separate from catalog caching
+- **Command routing:** `@` prefix signals catalog mode; everything else is treated as direct URL
+- **HTTP layer:** reusable catalog fetching with ETag validation, recursive nested resolution, HTTP error handling
+
+**Trait: Machine-readable output**
+- All commands support `--output json|text` for scripting/automation
+- JSON output includes canonical URLs, cache status, selector tokens for reuse
+- Deterministic output format for skill workflows
+
+**Trait: Deterministic behavior**
+- No hidden model calls or heuristics
+- Explicit `@agent@catalog` addressing for disambiguation
+- Lexical scoring for auto-selection (debuggable, testable)
+- Version stability for cross-invocation determinism
+
+**Trait: Gradual adoption**
+- Existing direct-URL workflows unchanged
+- `@` syntax optional; catalog addressing only when user chooses
+- Backward compatibility with legacy A2A endpoints
+- Fallback to current A2A discovery if no catalog exists
+
+---
+
+## NuGet Readiness Decision (Roy, Approved)
+
+*Consolidated from roy-nuget-readiness.md*
+
+### Decision
+
+1. Keep the package version at `0.1.0` and publish under `PackageId` `SpecWorks.AiCatalog`.
+2. Target `net8.0;net10.0` for the library so the package includes the current LTS while retaining compatibility with the previous LTS.
+3. Use the repository root `README.md` as the NuGet package readme by linking it into the package as `README.md`.
+4. Add a GitHub Actions workflow at `.github/workflows/publish-nuget.yml` that restores, tests, packs, uploads artifacts, and publishes on `v*` tags or manual dispatch when `NUGET_API_KEY` is present.
+
+### Rationale
+- Including `net10.0` aligns the library with the current LTS expectation in team guidance, while `net8.0` keeps the package usable for consumers not yet on .NET 10.
+- Reusing the repo root README avoids creating a second, divergent package readme and fixes the immediate `NU5039` pack failure.
+- A dedicated publish workflow closes the biggest release-process gap without publishing anything immediately.
+
+### Evidence
+- `dotnet pack dotnet/src/AiCatalog/AiCatalog.csproj -c Release` initially failed with `NU5039: The readme file 'README.md' does not exist in the package.`
+- After the csproj update, `dotnet test dotnet/AiCatalog.sln -c Release --nologo && dotnet pack dotnet/src/AiCatalog/AiCatalog.csproj -c Release --nologo` succeeded.
+- `dotnet package search SpecWorks.AiCatalog --source https://api.nuget.org/v3/index.json` confirmed readiness for publication.
