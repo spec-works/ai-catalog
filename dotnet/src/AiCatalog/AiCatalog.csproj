@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <RootNamespace>SpecWorks.AiCatalog</RootNamespace>
     <AssemblyName>SpecWorks.AiCatalog</AssemblyName>
     <Nullable>enable</Nullable>
@@ -19,6 +19,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/spec-works/ai-catalog</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/spec-works/ai-catalog</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- SourceLink -->
@@ -30,6 +31,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.*" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
   </ItemGroup>
 
 </Project>

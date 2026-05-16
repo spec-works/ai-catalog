@@ -15,7 +15,7 @@ Key concepts:
 
 | Package | Language | Install |
 |---------|----------|---------|
-| [SpecWorks.AiCatalog](https://www.nuget.org/packages/SpecWorks.AiCatalog) | .NET 8/9 | `dotnet add package SpecWorks.AiCatalog` |
+| [SpecWorks.AiCatalog](https://www.nuget.org/packages/SpecWorks.AiCatalog) | .NET 8/10 | `dotnet add package SpecWorks.AiCatalog` |
 | [SpecWorks.AiCatalog.Cli](https://www.nuget.org/packages/SpecWorks.AiCatalog.Cli) | .NET 9 CLI | `dotnet tool install --global SpecWorks.AiCatalog.Cli` |
 | [specworks-aicatalog](https://pypi.org/project/specworks-aicatalog/) | Python | `pip install specworks-aicatalog` |
 
