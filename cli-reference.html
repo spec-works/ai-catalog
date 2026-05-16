@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>CLI Reference | AI Catalog Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="CLI Reference | AI Catalog Documentation ">
+      
+      
+      <link rel="icon" href="images/logo.svg">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/spec-works/ai-catalog/blob/main/docs/site/cli-reference.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="images/logo.svg" alt="AI Catalog">
+            AI Catalog
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="cli-reference">CLI Reference</h1>
+
+<p>Complete command reference for the <code>ai-catalog</code> CLI tool.</p>
+<h2 id="installation">Installation</h2>
+<pre><code class="lang-bash">dotnet tool install --global SpecWorks.AiCatalog.Cli
+</code></pre>
+<h2 id="commands">Commands</h2>
+<h3 id="ai-catalog-explore-url"><code>ai-catalog explore &lt;url&gt;</code></h3>
+<p>Fetch and browse an AI Catalog from a URL. Displays entries in a table format with optional filtering and detail views.</p>
+<pre><code class="lang-bash">ai-catalog explore &lt;url&gt; [options]
+</code></pre>
+<p><strong>Arguments:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>url</code></td>
+<td>URL of an AI Catalog document</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--filter-tag &lt;tag&gt;</code></td>
+<td>Filter entries by tag</td>
+</tr>
+<tr>
+<td><code>--filter-media-type &lt;type&gt;</code></td>
+<td>Filter entries by media type</td>
+</tr>
+<tr>
+<td><code>--show &lt;identifier&gt;</code></td>
+<td>Show detailed info for a specific entry</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<pre><code class="lang-bash"># List all entries in a catalog
+ai-catalog explore https://spec-works.github.io/.well-known/ai-catalog.json
+
+# Filter by tag
+ai-catalog explore https://spec-works.github.io/.well-known/ai-catalog.json --filter-tag agent
+
+# Filter by media type
+ai-catalog explore https://spec-works.github.io/.well-known/ai-catalog.json \
+  --filter-media-type &quot;application/vnd.a2a.agent-card+json&quot;
+
+# Show details for a specific entry
+ai-catalog explore https://spec-works.github.io/.well-known/ai-catalog.json \
+  --show &quot;urn:specworks:a2a-ask&quot;
+</code></pre>
+<p><strong>Output (list mode):</strong></p>
+<pre><code>AI Catalog (specVersion: 1.0, conformance: Discoverable)
+Host: SpecWorks
+
+Identifier                               Display Name              Media Type                          Version
+------------------------------------------------------------------------------------------------------------------
+urn:specworks:a2a-ask                    A2A-Ask                   application/vnd.a2a.agent-card+json 1.1.0
+urn:specworks:markmyword                 MarkMyWord                text/markdown                       1.0.0
+...
+
+5 entries shown (of 5 total)
+</code></pre>
+<p><strong>Output (detail mode with <code>--show</code>):</strong></p>
+<pre><code>Identifier:  urn:specworks:a2a-ask
+Display Name: A2A-Ask
+Media Type:  application/vnd.a2a.agent-card+json
+Description: CLI tool for interacting with A2A protocol agents
+Version:     1.1.0
+URL:         https://github.com/spec-works/A2A-Ask
+Tags:        agent, a2a, cli
+
+Publisher:
+  Identifier:  spec-works
+  Display Name: SpecWorks
+</code></pre>
+<hr>
+<h3 id="ai-catalog-convert-marketplace-file"><code>ai-catalog convert marketplace &lt;file&gt;</code></h3>
+<p>Convert a Claude-format <code>marketplace.json</code> to a standard <code>ai-catalog.json</code> document.</p>
+<pre><code class="lang-bash">ai-catalog convert marketplace &lt;input-file&gt; [options]
+</code></pre>
+<p><strong>Arguments:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input-file</code></td>
+<td>Path to the marketplace.json file</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Alias</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--output</code></td>
+<td><code>-o</code></td>
+<td>Output file path (defaults to stdout)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<pre><code class="lang-bash"># Convert and print to stdout
+ai-catalog convert marketplace marketplace.json
+
+# Convert and save to file
+ai-catalog convert marketplace marketplace.json -o ai-catalog.json
+</code></pre>
+<hr>
+<h3 id="ai-catalog-install-catalog-url-entry-id"><code>ai-catalog install &lt;catalog-url&gt; &lt;entry-id&gt;</code></h3>
+<p>Download and install an artifact from a catalog. Automatically detects whether the entry is an MCP server card or a skill based on its media type.</p>
+<pre><code class="lang-bash">ai-catalog install &lt;catalog-url&gt; &lt;entry-id&gt; [options]
+</code></pre>
+<p><strong>Arguments:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>catalog-url</code></td>
+<td>URL of the AI Catalog</td>
+</tr>
+<tr>
+<td><code>entry-id</code></td>
+<td>Identifier of the entry to install</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--type &lt;mcp\|skill&gt;</code></td>
+<td>Override auto-detection of artifact type</td>
+</tr>
+<tr>
+<td><code>--output-dir &lt;dir&gt;</code></td>
+<td>Base directory for installation (default: <code>.</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<pre><code class="lang-bash"># Install an MCP server (auto-detected)
+ai-catalog install https://spec-works.github.io/.well-known/ai-catalog.json \
+  &quot;urn:specworks:xregistry-mcp&quot;
+
+# Install a skill with explicit type
+ai-catalog install https://spec-works.github.io/.well-known/ai-catalog.json \
+  &quot;urn:specworks:a2a-ask&quot; --type skill
+
+# Install to a specific directory
+ai-catalog install https://spec-works.github.io/.well-known/ai-catalog.json \
+  &quot;urn:specworks:markmyword&quot; --output-dir ~/my-project
+</code></pre>
+<p><strong>MCP server installation</strong> writes to <code>.ai-catalog/mcp-config.json</code>:</p>
+<pre><code class="lang-json">{
+  &quot;mcpServers&quot;: {
+    &quot;xregistry-mcp&quot;: {
+      &quot;url&quot;: &quot;https://example.com/mcp&quot;,
+      &quot;name&quot;: &quot;xRegistry MCP Server&quot;,
+      &quot;mediaType&quot;: &quot;application/vnd.mcp.server-card+json&quot;
+    }
+  }
+}
+</code></pre>
+<p><strong>Skill installation</strong> downloads the artifact to <code>.ai-catalog/skills/&lt;name&gt;.&lt;ext&gt;</code>.</p>
+<h2 id="global-options">Global Options</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--version</code></td>
+<td>Show version information</td>
+</tr>
+<tr>
+<td><code>-?, -h, --help</code></td>
+<td>Show help and usage</td>
+</tr>
+</tbody>
+</table>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/spec-works/ai-catalog/blob/main/docs/site/cli-reference.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <a href='https://spec-works.github.io/'>SpecWorks Factory</a> | <a href='https://github.com/spec-works/ai-catalog'>GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,373 @@
+{
+  "source_base_path": "/home/runner/work/ai-catalog/ai-catalog/docs/site",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.AiCatalogException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.AiCatalogException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.AiCatalogException",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.AiCatalogException.yml\" sourcestartlinenumber=\"1\">Base exception for all AI Catalog operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Models.AiCatalog.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Models.AiCatalog.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Models.AiCatalog",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Models.AiCatalog.yml\" sourcestartlinenumber=\"1\">Top-level AI Catalog document containing entries and optional host and metadata.\nMaps to the root object of an <code>application/ai-catalog+json</code> document.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Models.Attestation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Models.Attestation.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Models.Attestation",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Models.Attestation.yml\" sourcestartlinenumber=\"1\">An attestation representing a verifiable proof (audit report, compliance cert, etc.).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Models.CatalogEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Models.CatalogEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Models.CatalogEntry",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Models.CatalogEntry.yml\" sourcestartlinenumber=\"1\">A single catalog entry describing an AI artifact.\nMust have exactly one of <xref href=\"SpecWorks.AiCatalog.Models.CatalogEntry.Url\" data-throw-if-not-resolved=\"false\"></xref> or <xref href=\"SpecWorks.AiCatalog.Models.CatalogEntry.Data\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Models.HostInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Models.HostInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Models.HostInfo",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Models.HostInfo.yml\" sourcestartlinenumber=\"1\">Host information describing the catalog operator.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Models.ProvenanceLink.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Models.ProvenanceLink.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Models.ProvenanceLink",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Models.ProvenanceLink.yml\" sourcestartlinenumber=\"1\">A provenance link describing lineage and origin of an artifact.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Models.Publisher.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Models.Publisher.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Models.Publisher",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Models.Publisher.yml\" sourcestartlinenumber=\"1\">Publisher information for a catalog entry.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Models.TrustManifest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Models.TrustManifest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Models.TrustManifest",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Models.TrustManifest.yml\" sourcestartlinenumber=\"1\">Trust manifest containing identity, attestations, provenance, and policy information.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Models.TrustSchema.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Models.TrustSchema.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Models.TrustSchema",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Models.TrustSchema.yml\" sourcestartlinenumber=\"1\">Trust schema defining the trust framework and verification methods.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Models.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Models.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Models",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Parsing.AiCatalogParseException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Parsing.AiCatalogParseException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Parsing.AiCatalogParseException",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Parsing.AiCatalogParseException.yml\" sourcestartlinenumber=\"1\">Exception thrown when JSON cannot be parsed into an AI Catalog document.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Parsing.AiCatalogParser.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Parsing.AiCatalogParser.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Parsing.AiCatalogParser",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Parsing.AiCatalogParser.yml\" sourcestartlinenumber=\"1\">Parses JSON into <xref href=\"SpecWorks.AiCatalog\" data-throw-if-not-resolved=\"false\"></xref> instances.\nDoes NOT validate conformance — use <xref href=\"SpecWorks.AiCatalog.Validation.AiCatalogValidator\" data-throw-if-not-resolved=\"false\"></xref> for that.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Parsing.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Parsing.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Parsing",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Serialization.AiCatalogSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Serialization.AiCatalogSerializer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Serialization.AiCatalogSerializer",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Serialization.AiCatalogSerializer.yml\" sourcestartlinenumber=\"1\">Serializes <xref href=\"SpecWorks.AiCatalog\" data-throw-if-not-resolved=\"false\"></xref> instances to JSON.\nOmits null optional fields and preserves metadata values exactly.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Serialization.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Serialization.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Serialization",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Validation.AiCatalogValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Validation.AiCatalogValidator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Validation.AiCatalogValidator",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Validation.AiCatalogValidator.yml\" sourcestartlinenumber=\"1\">Validates <xref href=\"SpecWorks.AiCatalog\" data-throw-if-not-resolved=\"false\"></xref> instances against the AI Card specification conformance levels.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Validation.ConformanceLevel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Validation.ConformanceLevel.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Validation.ConformanceLevel",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Validation.ConformanceLevel.yml\" sourcestartlinenumber=\"1\">Conformance levels as defined by the AI Card specification.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Validation.DiagnosticSeverity.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Validation.DiagnosticSeverity.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Validation.DiagnosticSeverity",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Validation.DiagnosticSeverity.yml\" sourcestartlinenumber=\"1\">Severity of a validation diagnostic.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Validation.ValidationDiagnostic.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Validation.ValidationDiagnostic.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Validation.ValidationDiagnostic",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Validation.ValidationDiagnostic.yml\" sourcestartlinenumber=\"1\">A single validation diagnostic (error or warning).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Validation.ValidationResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Validation.ValidationResult.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Validation.ValidationResult",
+      "Summary": "<p sourcefile=\"api/SpecWorks.AiCatalog.Validation.ValidationResult.yml\" sourcestartlinenumber=\"1\">The result of validating an AI Catalog document.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.Validation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.Validation.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog.Validation",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/SpecWorks.AiCatalog.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/SpecWorks.AiCatalog.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "SpecWorks.AiCatalog",
+      "Summary": null
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "api/toc.json"
+        },
+        ".html": {
+          "relative_path": "api/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "cli-reference.md",
+      "output": {
+        ".html": {
+          "relative_path": "cli-reference.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "toc.json"
+        },
+        ".html": {
+          "relative_path": "toc.html"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
