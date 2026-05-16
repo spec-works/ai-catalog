@@ -1,0 +1,66 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "AiCatalog/AiCatalog.csproj"
+          ],
+          "src": "../../dotnet/src"
+        }
+      ],
+      "dest": "api",
+      "includePrivateMembers": false,
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false,
+      "filter": "filterConfig.yml"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "api/index.md"
+        ]
+      },
+      {
+        "files": [
+          "**.md",
+          "**.yml"
+        ],
+        "exclude": [
+          "obj/**",
+          "_site/**",
+          "**/bin/**",
+          "**/obj/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": ["default", "modern", "template"],
+    "globalMetadata": {
+      "_appTitle": "AI Catalog Documentation",
+      "_appName": "AI Catalog",
+      "_appFooter": "<a href='https://spec-works.github.io/'>SpecWorks Factory</a> | <a href='https://github.com/spec-works/ai-catalog'>GitHub</a>",
+      "_enableSearch": true,
+      "_enableNewTab": true,
+      "_gitContribute": {
+        "repo": "https://github.com/spec-works/ai-catalog",
+        "branch": "main"
+      },
+      "_appLogoPath": "images/logo.svg",
+      "_appFaviconPath": "images/logo.svg",
+      "_extraCss": [
+        "styles/main.css"
+      ]
+    }
+  }
+}
