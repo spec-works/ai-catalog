@@ -1,26 +1,26 @@
-name: Publish NuGet Package
+name: Build and Publish
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
+    paths:
+      - 'dotnet/**'
+      - '.github/workflows/publish-nuget.yml'
   workflow_dispatch:
-    inputs:
-      publish:
-        description: 'Publish to NuGet'
-        required: true
-        default: false
-        type: boolean
 
 permissions:
-  contents: read
+  contents: write
+
+env:
+  PROJECT_PATH: dotnet/src/AiCatalog/AiCatalog.csproj
+  SOLUTION_PATH: dotnet/AiCatalog.sln
 
 jobs:
-  pack:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -30,24 +30,100 @@ jobs:
             10.0.x
 
       - name: Restore
-        run: dotnet restore dotnet/AiCatalog.sln
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test dotnet/AiCatalog.sln -c Release --no-restore --nologo
+        run: dotnet test ${{ env.SOLUTION_PATH }} --no-build --configuration Release --verbosity normal
 
-      - name: Pack library
-        run: dotnet pack dotnet/src/AiCatalog/AiCatalog.csproj -c Release --no-restore --no-build -p:ContinuousIntegrationBuild=true -o artifacts
+  pack:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Upload package artifacts
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "is_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "version=0.0.1-preview.${{ github.run_number }}" >> $GITHUB_OUTPUT
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Pack
+        run: |
+          dotnet pack ${{ env.PROJECT_PATH }} \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:ContinuousIntegrationBuild=true
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nuget-package
-          path: artifacts/*.*nupkg
+          name: nuget-packages
+          path: ./artifacts/*.*nupkg
 
-      - name: Publish package
-        if: (startsWith(github.ref, 'refs/tags/v') || inputs.publish) && secrets.NUGET_API_KEY != ''
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_release: ${{ steps.version.outputs.is_release }}
+
+  publish-nuget:
+    needs: pack
+    if: needs.pack.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish to NuGet
         run: |
-          dotnet nuget push "artifacts/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY" --skip-duplicate
-          dotnet nuget push "artifacts/*.snupkg" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY" --skip-duplicate
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+  create-github-release:
+    needs: [pack, publish-nuget]
+    if: needs.pack.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: SpecWorks.AiCatalog v${{ needs.pack.outputs.version }}
+          files: ./artifacts/*.nupkg
+          generate_release_notes: true
