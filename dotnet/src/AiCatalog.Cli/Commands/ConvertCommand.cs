@@ -26,7 +26,7 @@ public static class ConvertCommand
         var outputOption = new Option<FileInfo?>("--output", "Output file path (defaults to stdout)");
         outputOption.AddAlias("-o");
 
-        var cmd = new Command("marketplace", "Convert a Claude marketplace.json to ai-catalog.json")
+        var cmd = new Command("marketplace", "Convert a marketplace.json to ai-catalog.json, packaging skills as zip files")
         {
             inputArgument,
             outputOption
@@ -47,13 +47,40 @@ public static class ConvertCommand
             try
             {
                 using var stream = inputFile.OpenRead();
-                var catalog = MarketplaceConverter.Convert(stream);
+
+                // Build packaging options when an output file is specified
+                MarketplaceConverter.PackagingOptions? packaging = null;
+                if (outputFile != null)
+                {
+                    var outputDir = Path.GetDirectoryName(Path.GetFullPath(outputFile.FullName))
+                        ?? Directory.GetCurrentDirectory();
+                    packaging = new MarketplaceConverter.PackagingOptions
+                    {
+                        SourceDir = inputFile.Directory?.FullName,
+                        OutputDir = outputDir
+                    };
+                }
+
+                var catalog = MarketplaceConverter.Convert(stream, packaging);
                 var json = AiCatalogSerializer.Serialize(catalog);
 
                 if (outputFile != null)
                 {
                     await File.WriteAllTextAsync(outputFile.FullName, json);
                     Console.WriteLine($"Converted {catalog.Entries.Count} entries to {outputFile.FullName}");
+
+                    // Report any packaged skills
+                    var skillsDir = Path.Combine(
+                        Path.GetDirectoryName(Path.GetFullPath(outputFile.FullName)) ?? ".",
+                        "skills");
+                    if (Directory.Exists(skillsDir))
+                    {
+                        var zips = Directory.GetFiles(skillsDir, "*.zip");
+                        if (zips.Length > 0)
+                        {
+                            Console.WriteLine($"Packaged {zips.Length} skill(s) to {skillsDir}/");
+                        }
+                    }
                 }
                 else
                 {

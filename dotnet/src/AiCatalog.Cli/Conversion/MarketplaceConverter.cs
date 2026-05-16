@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text.Json;
 using SpecWorks.AiCatalog.Models;
 
@@ -15,16 +16,26 @@ namespace SpecWorks.AiCatalog.Cli.Conversion;
 public static class MarketplaceConverter
 {
     private const string AiCatalogMediaType = "application/ai-catalog+json";
+    private const string SkillZipMediaType = "application/zip";
     private const string ClaudeIdentifierPrefix = "urn:claude:plugins:";
     private const string MarketplaceIdentifierPrefix = "urn:marketplace:";
 
     /// <summary>
+    /// Options controlling how skill assets are packaged during conversion.
+    /// </summary>
+    public sealed class PackagingOptions
+    {
+        /// <summary>Directory containing the marketplace.json (used to resolve relative skill paths).</summary>
+        public string? SourceDir { get; init; }
+
+        /// <summary>Directory where skill zip packages will be written (e.g., next to the output catalog).</summary>
+        public string? OutputDir { get; init; }
+    }
+
+    /// <summary>
     /// Converts a marketplace JSON string to an <see cref="Models.AiCatalog"/>.
     /// </summary>
-    /// <param name="marketplaceJson">The marketplace JSON string (containing a "plugins" array or wrapped in a test fixture with "input.plugins").</param>
-    /// <returns>An AI Catalog document with one entry per marketplace plugin.</returns>
-    /// <exception cref="AiCatalogException">Thrown when the marketplace JSON is invalid.</exception>
-    public static Models.AiCatalog Convert(string marketplaceJson)
+    public static Models.AiCatalog Convert(string marketplaceJson, PackagingOptions? packaging = null)
     {
         JsonDocument doc;
         try
@@ -38,14 +49,14 @@ public static class MarketplaceConverter
 
         using (doc)
         {
-            return ConvertDocument(doc);
+            return ConvertDocument(doc, packaging);
         }
     }
 
     /// <summary>
     /// Converts a marketplace JSON stream to an <see cref="Models.AiCatalog"/>.
     /// </summary>
-    public static Models.AiCatalog Convert(Stream stream)
+    public static Models.AiCatalog Convert(Stream stream, PackagingOptions? packaging = null)
     {
         JsonDocument doc;
         try
@@ -59,11 +70,11 @@ public static class MarketplaceConverter
 
         using (doc)
         {
-            return ConvertDocument(doc);
+            return ConvertDocument(doc, packaging);
         }
     }
 
-    private static Models.AiCatalog ConvertDocument(JsonDocument doc)
+    private static Models.AiCatalog ConvertDocument(JsonDocument doc, PackagingOptions? packaging)
     {
         var root = doc.RootElement;
 
@@ -104,7 +115,7 @@ public static class MarketplaceConverter
         foreach (var plugin in pluginsArray.EnumerateArray())
         {
             entries.Add(isCopilotFormat
-                ? ConvertCopilotPlugin(plugin, marketplaceName, sharedPublisher)
+                ? ConvertCopilotPlugin(plugin, marketplaceName, sharedPublisher, packaging)
                 : ConvertClaudePlugin(plugin));
         }
 
@@ -156,7 +167,7 @@ public static class MarketplaceConverter
         };
     }
 
-    private static CatalogEntry ConvertCopilotPlugin(JsonElement plugin, string? marketplaceName, Publisher? sharedPublisher)
+    private static CatalogEntry ConvertCopilotPlugin(JsonElement plugin, string? marketplaceName, Publisher? sharedPublisher, PackagingOptions? packaging)
     {
         var name = plugin.GetProperty("name").GetString()
             ?? throw new AiCatalogException("Plugin 'name' is required");
@@ -192,27 +203,57 @@ public static class MarketplaceConverter
             };
         }
 
-        // If skills are present, create a nested catalog with one entry per skill
+        // Get the plugin source folder for resolving relative skill paths
+        var pluginSource = plugin.TryGetProperty("source", out var srcEl) && srcEl.ValueKind == JsonValueKind.String
+            ? srcEl.GetString()
+            : null;
+
+        // If skills are present, package each skill folder as a zip and create nested catalog entries
         if (plugin.TryGetProperty("skills", out var skillsElement) && skillsElement.ValueKind == JsonValueKind.Array)
         {
-            var skillEntries = skillsElement.EnumerateArray()
-                .Where(s => s.ValueKind == JsonValueKind.String)
-                .Select(s =>
-                {
-                    var skillPath = s.GetString()!;
-                    var leafName = skillPath.LastIndexOf('/') is var idx && idx >= 0
-                        ? skillPath[(idx + 1)..]
-                        : skillPath;
+            var canPackage = packaging?.SourceDir != null && packaging?.OutputDir != null;
+            var skillEntries = new List<CatalogEntry>();
 
-                    return new CatalogEntry
+            foreach (var s in skillsElement.EnumerateArray())
+            {
+                if (s.ValueKind != JsonValueKind.String)
+                    continue;
+
+                var skillPath = s.GetString()!;
+                var leafName = skillPath.LastIndexOf('/') is var idx && idx >= 0
+                    ? skillPath[(idx + 1)..]
+                    : skillPath;
+
+                var skillEntry = new CatalogEntry
+                {
+                    Identifier = $"{identifier}:{leafName}",
+                    DisplayName = leafName,
+                };
+
+                if (canPackage)
+                {
+                    var zipRelPath = PackageSkill(skillPath, pluginSource, leafName, packaging!);
+                    if (zipRelPath != null)
                     {
-                        Identifier = $"{identifier}:{leafName}",
-                        DisplayName = leafName,
-                        MediaType = "application/json",
-                        Url = skillPath
-                    };
-                })
-                .ToList();
+                        skillEntry.MediaType = SkillZipMediaType;
+                        skillEntry.Url = zipRelPath;
+                    }
+                    else
+                    {
+                        // Skill folder not found — fall back to raw path
+                        skillEntry.MediaType = "application/json";
+                        skillEntry.Url = skillPath;
+                    }
+                }
+                else
+                {
+                    // No packaging options — use raw path as before
+                    skillEntry.MediaType = "application/json";
+                    skillEntry.Url = skillPath;
+                }
+
+                skillEntries.Add(skillEntry);
+            }
 
             if (skillEntries.Count > 0)
             {
@@ -231,13 +272,79 @@ public static class MarketplaceConverter
         // If no nested Data was created, fall back to url from source
         if (entry.Data == null)
         {
-            if (plugin.TryGetProperty("source", out var sourceElement) && sourceElement.ValueKind == JsonValueKind.String)
+            if (pluginSource != null)
             {
-                entry.Url = sourceElement.GetString();
+                entry.Url = pluginSource;
             }
         }
 
         return entry;
+    }
+
+    /// <summary>
+    /// Zips the skill folder and writes it to the output skills/ directory.
+    /// Returns the relative path to the zip (e.g., "skills/a2a-ask-cli.zip"), or null if the folder doesn't exist.
+    /// </summary>
+    private static string? PackageSkill(string skillPath, string? pluginSource, string leafName, PackagingOptions packaging)
+    {
+        // Skill paths in marketplace.json are relative to the plugin's source folder.
+        // E.g., plugin source = "plugins/a2a-ask", skill = "./skills/a2a-ask-cli"
+        // The full path from repo root: plugins/a2a-ask/skills/a2a-ask-cli
+
+        var normalizedSkillPath = skillPath.TrimStart('.', '/', '\\');
+        var sourceDir = packaging.SourceDir!;
+
+        var candidatePaths = new List<string>();
+
+        // Primary: relative to plugin source folder within sourceDir
+        if (pluginSource != null)
+        {
+            candidatePaths.Add(Path.Combine(sourceDir, pluginSource, normalizedSkillPath));
+        }
+
+        // Fallback: relative to sourceDir directly
+        candidatePaths.Add(Path.Combine(sourceDir, normalizedSkillPath));
+
+        // Fallback: walk up from sourceDir looking for the plugin source structure
+        // This handles marketplace.json in a subdirectory (e.g., .github/plugin/)
+        if (pluginSource != null)
+        {
+            var dir = sourceDir;
+            for (int i = 0; i < 4; i++)
+            {
+                var parent = Directory.GetParent(dir)?.FullName;
+                if (parent == null || parent == dir) break;
+                dir = parent;
+                candidatePaths.Add(Path.Combine(dir, pluginSource, normalizedSkillPath));
+            }
+        }
+
+        string? skillDir = null;
+        foreach (var candidate in candidatePaths)
+        {
+            if (Directory.Exists(candidate))
+            {
+                skillDir = candidate;
+                break;
+            }
+        }
+
+        if (skillDir == null)
+            return null;
+
+        var skillsOutputDir = Path.Combine(packaging.OutputDir!, "skills");
+        Directory.CreateDirectory(skillsOutputDir);
+
+        var zipFileName = $"{leafName}.zip";
+        var zipPath = Path.Combine(skillsOutputDir, zipFileName);
+
+        // Remove existing zip if present
+        if (File.Exists(zipPath))
+            File.Delete(zipPath);
+
+        ZipFile.CreateFromDirectory(skillDir, zipPath, CompressionLevel.Optimal, includeBaseDirectory: false);
+
+        return $"skills/{zipFileName}";
     }
 
     private static readonly JsonSerializerOptions s_serializerOptions = new()

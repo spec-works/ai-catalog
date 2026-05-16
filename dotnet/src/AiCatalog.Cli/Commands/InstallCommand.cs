@@ -83,11 +83,36 @@ public static class InstallCommand
             throw new AiCatalogException($"Invalid URL: {url}");
         }
 
+        // If the URL is just an origin (FQDN with no meaningful path), try .well-known first
+        if (IsOriginOnly(uri))
+        {
+            var wellKnownUri = new Uri(uri, "/.well-known/ai-catalog.json");
+            try
+            {
+                var wkResponse = await client.GetAsync(wellKnownUri);
+                if (wkResponse.IsSuccessStatusCode)
+                {
+                    var wkJson = await wkResponse.Content.ReadAsStringAsync();
+                    return AiCatalogParser.Parse(wkJson);
+                }
+            }
+            catch (HttpRequestException)
+            {
+                // Fall through to try the original URL
+            }
+        }
+
         var response = await client.GetAsync(uri);
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
         return AiCatalogParser.Parse(json);
+    }
+
+    private static bool IsOriginOnly(Uri uri)
+    {
+        var path = uri.AbsolutePath;
+        return path == "/" || path == string.Empty;
     }
 
     private static string ResolveType(CatalogEntry entry, string? typeHint)
