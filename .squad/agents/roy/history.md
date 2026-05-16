@@ -233,6 +233,29 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 **Key decisions:**
 - `.well-known/ai-catalog.json` path for catalog serving (standard well-known URI pattern)
 - Multi-version .NET setup (`9.0.x` for CLI + `10.0.x` for DocFX) via `setup-dotnet` multi-line version syntax
+
+### 2026-05-16T23:48 — A2A-Ask Issues #2/#3 Fixed: Direct Send + v0.3 Client Selection
+
+**Community-reported issues fixed on A2A-Ask repository:**
+
+- **Issue #2:** v0.3 agents rejecting JSON-RPC method names (SendMessage vs Send mismatch)
+- **Issue #3:** Unnecessary agent card fetch before every send/stream/task command
+
+**Solution implemented:**
+- Modified `CommonOptions.CreateClientAsync()` to select client version from `--a2a-version` flag instead of card probe
+- Direct URLs now bypass card fetch entirely (only applies to direct endpoint URLs)
+- Catalog-resolved targets (@agent@catalog) still fetch cards as needed
+- v0.3 support uses correct PascalCase method names (SendMessage, StreamMessage, PostTask)
+
+**Changes:**
+- CommonOptions.cs — Version-based client selection
+- SendCommand.cs, StreamCommand.cs, TaskCommand.cs — Direct URL handling
+- DirectClientTests.cs, RequestCaptureState.cs — New integration tests
+- TestAgentServer/Program.cs — Extended test endpoints
+
+**Verification:** Both direct and catalog scenarios tested; no regressions.
+
+**Outcome:** Issues closed on GitHub; commit d2d0589 merged to master; pushed.
 - `repository_dispatch` with `plugins-updated` event type for cross-repo rebuild triggers
 - Sparse checkout for both `spec-works/plugins` and `spec-works/ai-catalog` to minimize clone size
 - Separate `dotnet build` + `dotnet run --no-build` steps for clarity and caching potential
@@ -320,3 +343,19 @@ Orchestration logs written for Roy and Pris. Decisions merged from CLI-specific 
 - Command wiring: `dotnet/src/A2A-Ask/Commands/CatalogCommand.cs`, `CommonOptions.cs`, `DiscoverCommand.cs`, `SendCommand.cs`, `Program.cs`
 - Test coverage: `dotnet/tests/A2A-Ask.Tests/TargetParserTests.cs`, `ConsoleFormatterTests.cs`, `dotnet/tests/A2A-Ask.IntegrationTests/CatalogInputResolverTests.cs`, `dotnet/tests/TestAgentServer/Program.cs`
 - NuGet source mapping for the published package: `C:\src\github\spec-works\A2A-Ask\nuget.config`
+
+### 2026-05-16: A2A-Ask Direct Send + v0.3 Client Fixes
+
+**Delivered in `C:\src\github\spec-works\A2A-Ask`:** Fixed direct-url client creation so `send`/`stream`/`task` no longer fetch an agent card before sending requests, and threaded `--a2a-version` into client creation so v0.3 targets use the compat client with legacy JSON-RPC method names.
+
+**Architecture / patterns:**
+- `CommonOptions.CreateClientAsync()` now has a direct-URL path that instantiates the request client from the user-supplied endpoint; card fetch is reserved for catalog-resolved targets that already carry an `AgentCardUrl`.
+- Version switching is centralized in `CommonOptions.IsV03()` and uses `A2A.V0_3Compat.V03CompatClientFactory` for v0.3, keeping command handlers thin.
+- `SendCommand` now treats plain URLs as direct endpoints and only uses catalog resolution for `@agent@catalog` style targets.
+- Integration coverage uses lightweight test-only endpoints in `dotnet/tests/TestAgentServer/Program.cs` plus `RequestCaptureState` to assert both no-card-fetch behavior and v0.3 method-name selection.
+
+**Key file paths:**
+- Client creation and version switching: `dotnet/src/A2A-Ask/Commands/CommonOptions.cs`
+- Command wiring: `dotnet/src/A2A-Ask/Commands/SendCommand.cs`, `StreamCommand.cs`, `TaskCommand.cs`
+- Test server probes: `dotnet/tests/TestAgentServer/Program.cs`, `RequestCaptureState.cs`
+- Integration tests: `dotnet/tests/A2A-Ask.IntegrationTests/DirectClientTests.cs`

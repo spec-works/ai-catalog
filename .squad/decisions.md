@@ -760,3 +760,34 @@ Any tool consuming AI Catalogs can now:
 ### Decision
 
 **Approved.** Implement minimal A2A discovery helpers as described. These enable A2A-Ask integration without scope creep or additional abstractions. Future Toolbox work (ADR-007 revival) will handle multi-catalog indexing and capability mapping as a separate phase.
+
+---
+
+### A2A-Ask: Direct Endpoint + v0.3 Client Selection — Roy (2026-05-16)
+
+**Context:** GitHub issues #2 and #3 showed that A2A-Ask was resolving an agent card for every `send`/`stream`/`task` invocation and always creating the v1 JSON-RPC client. This broke direct endpoint scenarios and caused v0.3 agents to reject PascalCase JSON-RPC methods like `SendMessage`.
+
+**Decision:** Use the user-supplied endpoint directly for `send`/`stream`/`task` client creation, and select the client implementation from `--a2a-version` instead of probing the target for a card first.
+
+**Rationale:**
+- Direct URLs may not have a card at `/.well-known/agent-card.json`, may require different auth for card discovery, or may intentionally differ from the card URL.
+- The CLI already has enough user intent to choose protocol behavior: direct URL + `--a2a-version`.
+- Catalog-resolved targets remain safe to fetch because the catalog already provided an explicit `AgentCardUrl`.
+- Centralizing the switch in `CommonOptions.CreateClientAsync()` avoids duplicating version logic across command handlers.
+
+**Implementation notes:**
+- Direct URLs use `A2AClient` for v1 and `A2A.V0_3Compat.V03CompatClientFactory` for v0.3.
+- Catalog-resolved targets still fetch the card when needed to obtain the final endpoint URL.
+- `SendCommand` treats plain URLs as direct endpoints and reserves catalog resolution for `@agent@catalog` references.
+- Integration tests use test-only direct endpoints plus request capture to verify both no-card-fetch behavior and v0.3 method names.
+
+**Files Modified:**
+- CommonOptions.cs (version/client selection logic)
+- SendCommand.cs (direct URL handling)
+- StreamCommand.cs (direct URL handling)
+- TaskCommand.cs (direct URL handling)
+- DirectClientTests.cs (new test fixture)
+- RequestCaptureState.cs (new test helper)
+- TestAgentServer/Program.cs (extended test endpoints)
+
+**Outcome:** Issues #2 and #3 closed; merged to master (commit d2d0589).
