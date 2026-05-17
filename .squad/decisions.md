@@ -791,3 +791,15 @@ Any tool consuming AI Catalogs can now:
 - TestAgentServer/Program.cs (extended test endpoints)
 
 **Outcome:** Issues #2 and #3 closed; merged to master (commit d2d0589).
+
+---
+
+### A2A-Ask Catalog Targeting Documentation — Roy (2026-05-17)
+
+**Decision:** Document the implemented A2A-Ask catalog targeting surface exactly as shipped: `catalog show <target>` selects a specific agent through `@agent@catalog`, while bare `@agent` targets remain parsed but incomplete in Phase 1 without an explicit catalog host or URL.
+
+**Why:** The user request referenced a two-argument `catalog show <catalog-url> <entry-id>` shape, but the actual CLI surface in `CatalogCommand` and `TargetParser` uses a single target argument plus `@agent@catalog` addressing. Recording this avoids future docs drift and keeps AI-facing instructions aligned with the executable CLI behavior.
+
+**Implications:**
+- README, SKILL.md, and CLI reference should describe `catalog show <target>` rather than inventing a second positional argument.
+- Docs should explain all three target forms (`@agent`, `@agent@catalog`, `@@catalog`) while clearly noting the current Phase 1 limitation on bare `@agent` use.
