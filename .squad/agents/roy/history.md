@@ -50,3 +50,31 @@
 **Verification:** Both direct and catalog scenarios tested; no regressions.
 
 **Outcome:** Issues closed on GitHub; commit d2d0589 merged to master; pushed.
+
+### 2026-05-16 Documentation updates for catalog discovery and A2A-Ask
+
+**Docs updated:**
+- `ai-catalog\README.md` — added `.NET Library API` coverage for `KnownMediaTypes` and `CatalogEntryExtensions.IsA2AAgentCard()`.
+- `A2A-Ask\README.md` — added concise catalog integration guidance, target syntax, catalog commands, direct-send behavior, and `--a2a-version 0.3` guidance.
+- `A2A-Ask\skill\SKILL.md` — added executable catalog command guidance, target syntax, direct-send notes, v0.3 guidance, and catalog-first workflow updates.
+- `A2A-Ask\docs\cli-reference.md` — added `catalog list` / `catalog show` reference entries and direct URL/version notes.
+
+**Structure decisions:**
+- Documented the actual CLI surface as implemented: `catalog show <target>` resolves a specific agent via `@agent@catalog`, rather than inventing a separate entry-id argument.
+- Called out bare `@agent` targets as parsed-but-incomplete in Phase 1 so docs stay accurate while still explaining the full target grammar.
+
+### 2026-05-16T23:56 Documentation & A2A Integration
+
+**Updated documentation across repositories to reflect implementation work on catalog discovery and v0.3 compatibility:**
+
+- **ai-catalog/README.md** — Added `.NET Library API` section with `KnownMediaTypes` constants and `CatalogEntryExtensions.IsA2AAgentCard()` method documentation
+- **A2A-Ask/README.md** — Concise catalog integration guidance: @agent@catalog syntax, catalog commands, direct-send behavior, --a2a-version flag
+- **A2A-Ask/skill/SKILL.md** — Executable catalog command guidance, target syntax, direct-send notes, v0.3 workflow
+- **A2A-Ask/docs/cli-reference.md** — Reference entries for `catalog list` and `catalog show` with version selection guidance
+
+**Clarifications documented:**
+- v0.3 agents use PascalCase JSON-RPC methods (SendMessage, StreamMessage, PostTask)
+- Direct URLs bypass card fetch; only @agent@catalog references trigger catalog resolution
+- --a2a-version 0.3 flag enables v0.3 client selection
+
+**Outcome:** All documentation updated; ready for publication.
