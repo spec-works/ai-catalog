@@ -78,3 +78,15 @@
 - --a2a-version 0.3 flag enables v0.3 client selection
 
 **Outcome:** All documentation updated; ready for publication.
+
+### 2026-05-17 OAuth2 client registration for A2A-Ask issue #4
+
+**Implemented in `A2A-Ask`:** persistent OAuth2 client registration and issuer-based auto-selection for `auth login`.
+
+- Added `dotnet/src/A2A-Ask/Auth/ClientRegistrationStore.cs` using the same DPAPI-on-Windows / JSON-on-other-platforms persistence pattern as `TokenStore`.
+- Extended `dotnet/src/A2A-Ask/Commands/AuthLoginCommand.cs` with `auth register-client`, `auth list-clients`, and `auth remove-client`, plus issuer extraction from discovery metadata or token authority.
+- Updated `dotnet/src/A2A-Ask/Auth/DeviceCodeFlow.cs` and `AuthCodeFlow.cs` so stored client IDs are honored during interactive login; device code and refresh requests now preserve optional RFC 8707 `resource` values.
+- Extended `TokenResult` to persist `ClientId` and `Resource` so auto-refresh reuses the same OAuth client context.
+- Added focused tests in `dotnet/tests/A2A-Ask.Tests/AuthCommandTests.cs` and `ClientRegistrationStoreTests.cs`.
+
+**Verification:** `dotnet build --nologo` and `dotnet test --nologo --no-build` both passed from `A2A-Ask\dotnet` (107 tests).

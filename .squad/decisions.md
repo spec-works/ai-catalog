@@ -803,3 +803,20 @@ Any tool consuming AI Catalogs can now:
 **Implications:**
 - README, SKILL.md, and CLI reference should describe `catalog show <target>` rather than inventing a second positional argument.
 - Docs should explain all three target forms (`@agent`, `@agent@catalog`, `@@catalog`) while clearly noting the current Phase 1 limitation on bare `@agent` use.
+
+---
+
+### Roy Decision Inbox — Auth Register-Client — Approved (2026-05-17)
+
+**Decision:** Persist the OAuth client context (`ClientId` plus optional RFC 8707 `Resource`) alongside stored tokens so automatic refresh uses the same registration that was selected during `auth login`.
+
+**Why:** Issue #4 asked for issuer-based client auto-selection during interactive login. Without persisting that client context in `TokenResult`, refresh would fall back to the legacy `a2a-ask-cli` client ID and could fail for tenants that require a registered client.
+
+**Scope:** Affects A2A-Ask token storage and refresh flow in three files:
+- `C:\src\github\spec-works\A2A-Ask\dotnet\src\A2A-Ask\Auth\TokenStore.cs`
+- `C:\src\github\spec-works\A2A-Ask\dotnet\src\A2A-Ask\Auth\DeviceCodeFlow.cs`
+- `C:\src\github\spec-works\A2A-Ask\dotnet\src\A2A-Ask\Auth\AuthCodeFlow.cs`
+
+**Implementation:** ClientRegistrationStore component with auto-matching in `auth login`, supporting RFC 8707 resource selection and 3 new CLI commands for client lifecycle management.
+
+**Status:** ✅ APPROVED & IMPLEMENTED (107 tests passing, feature/auth-register-client branch ready)
