@@ -1,6 +1,6 @@
 # AI Catalog
 
-A .NET and Python toolkit for working with [AI Catalog](https://agent-card.github.io/ai-card/) documents (`application/ai-catalog+json`). Parse, validate, serialize, explore, and install AI artifacts from catalog registries.
+A .NET and Python toolkit for working with [AI Catalog](https://github.com/Agent-Card/ai-catalog) documents (`application/ai-catalog+json`). Parse, validate, serialize, explore, and install AI artifacts from catalog registries.
 
 ## What is AI Catalog?
 
