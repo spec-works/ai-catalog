@@ -1,0 +1,80 @@
+{
+  "specVersion": "1.0",
+  "entries": [
+    {
+      "identifier": "urn:marketplace:spec-works-plugins:markmyword",
+      "displayName": "markmyword",
+      "mediaType": "application/vnd.copilot.plugin\u002Bjson",
+      "url": "plugins/markmyword",
+      "version": "1.0.0",
+      "description": "Bidirectional Markdown and Word (.docx) conversion.",
+      "tags": [
+        "markmyword-cli"
+      ],
+      "publisher": {
+        "identifier": "https://spec-works.github.io",
+        "displayName": "SpecWorks"
+      }
+    },
+    {
+      "identifier": "urn:marketplace:spec-works-plugins:markmydeck",
+      "displayName": "markmydeck",
+      "mediaType": "application/vnd.copilot.plugin\u002Bjson",
+      "url": "plugins/markmydeck",
+      "version": "0.1.0",
+      "description": "Markdown to PowerPoint (.pptx) conversion.",
+      "tags": [
+        "markmydeck-cli"
+      ],
+      "publisher": {
+        "identifier": "https://spec-works.github.io",
+        "displayName": "SpecWorks"
+      }
+    },
+    {
+      "identifier": "urn:marketplace:spec-works-plugins:xregistry-mcp",
+      "displayName": "xregistry-mcp",
+      "mediaType": "application/vnd.copilot.plugin\u002Bjson",
+      "url": "plugins/xregistry-mcp",
+      "version": "1.0.0",
+      "description": "xRegistry specification discovery and navigation MCP server.",
+      "tags": [
+        "xregistry-mcp"
+      ],
+      "publisher": {
+        "identifier": "https://spec-works.github.io",
+        "displayName": "SpecWorks"
+      }
+    },
+    {
+      "identifier": "urn:marketplace:spec-works-plugins:officetalk",
+      "displayName": "officetalk",
+      "mediaType": "application/vnd.copilot.plugin\u002Bjson",
+      "url": "plugins/officetalk",
+      "version": "0.1.0",
+      "description": "Apply deterministic operations to Office documents (.docx, .xlsx, .pptx) via OfficeTalk CLI.",
+      "tags": [
+        "officetalk-cli"
+      ],
+      "publisher": {
+        "identifier": "https://spec-works.github.io",
+        "displayName": "SpecWorks"
+      }
+    },
+    {
+      "identifier": "urn:marketplace:spec-works-plugins:a2a-ask",
+      "displayName": "a2a-ask",
+      "mediaType": "application/vnd.copilot.plugin\u002Bjson",
+      "url": "plugins/a2a-ask",
+      "version": "1.0.0",
+      "description": "Interact with remote A2A (Agent-to-Agent) protocol agents via CLI.",
+      "tags": [
+        "a2a-ask-cli"
+      ],
+      "publisher": {
+        "identifier": "https://spec-works.github.io",
+        "displayName": "SpecWorks"
+      }
+    }
+  ]
+}

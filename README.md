@@ -152,6 +152,27 @@ AiCatalogSerializer.Serialize(catalog, outputStream);
 - `Publisher` — Entry publisher info
 - `TrustManifest` — Trust and attestation data
 
+### A2A Discovery Helpers
+
+Use the helper surface in `SpecWorks.AiCatalog` when you need to identify A2A agent cards inside a catalog.
+
+- `KnownMediaTypes.AiCatalog` — `application/ai-catalog+json`
+- `KnownMediaTypes.A2AAgentCard` — `application/a2a-agent-card+json`
+- `KnownMediaTypes.A2AAgentCardVendor` — `application/vnd.a2a.agent-card+json`
+- `CatalogEntryExtensions.IsA2AAgentCard()` — returns `true` when a `CatalogEntry` media type matches either A2A agent card media type, using case-insensitive comparison.
+
+```csharp
+using SpecWorks.AiCatalog;
+using SpecWorks.AiCatalog.Models;
+
+CatalogEntry entry = GetEntry();
+
+if (entry.IsA2AAgentCard())
+{
+    Console.WriteLine($"Resolved A2A entry: {entry.Identifier}");
+}
+```
+
 ## Specification
 
 This library implements the [AI Card specification](https://agent-card.github.io/ai-card/) (`application/ai-catalog+json`), including:
