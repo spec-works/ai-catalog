@@ -46,37 +46,13 @@ public static class MigrateCommand
             {
                 using var stream = inputFile.OpenRead();
 
-                MarketplaceConverter.PackagingOptions? packaging = null;
-                if (outputFile != null)
-                {
-                    var outputDir = Path.GetDirectoryName(Path.GetFullPath(outputFile.FullName))
-                        ?? Directory.GetCurrentDirectory();
-                    packaging = new MarketplaceConverter.PackagingOptions
-                    {
-                        SourceDir = inputFile.Directory?.FullName,
-                        OutputDir = outputDir
-                    };
-                }
-
-                var catalog = MarketplaceConverter.Convert(stream, packaging);
+                var catalog = MarketplaceConverter.Convert(stream, packaging: null);
                 var json = AiCatalogSerializer.Serialize(catalog);
 
                 if (outputFile != null)
                 {
                     await File.WriteAllTextAsync(outputFile.FullName, json);
                     Console.WriteLine($"Converted {catalog.Entries.Count} entries to {outputFile.FullName}");
-
-                    var skillsDir = Path.Combine(
-                        Path.GetDirectoryName(Path.GetFullPath(outputFile.FullName)) ?? ".",
-                        "skills");
-                    if (Directory.Exists(skillsDir))
-                    {
-                        var zips = Directory.GetFiles(skillsDir, "*.zip");
-                        if (zips.Length > 0)
-                        {
-                            Console.WriteLine($"Packaged {zips.Length} skill(s) to {skillsDir}/");
-                        }
-                    }
                 }
                 else
                 {
