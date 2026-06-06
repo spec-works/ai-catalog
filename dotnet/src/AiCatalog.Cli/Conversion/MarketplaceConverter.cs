@@ -287,9 +287,10 @@ public static class MarketplaceConverter
     /// </summary>
     private static string? PackageSkill(string skillPath, string? pluginSource, string leafName, PackagingOptions packaging)
     {
-        // Skill paths in marketplace.json are relative to the plugin's source folder.
-        // E.g., plugin source = "plugins/a2a-ask", skill = "./skills/a2a-ask-cli"
-        // The full path from repo root: plugins/a2a-ask/skills/a2a-ask-cli
+        // Skill paths in marketplace.json can be either:
+        // 1. Relative to plugin source: "./skills/a2a-ask-cli" (spec-works style)
+        // 2. Repo-root-relative: "./plugins/workiq/skills/workiq" (work-iq style)
+        // We try both conventions.
 
         var normalizedSkillPath = skillPath.TrimStart('.', '/', '\\');
         var sourceDir = packaging.SourceDir!;
@@ -299,23 +300,29 @@ public static class MarketplaceConverter
         // Primary: relative to plugin source folder within sourceDir
         if (pluginSource != null)
         {
-            candidatePaths.Add(Path.Combine(sourceDir, pluginSource, normalizedSkillPath));
+            var normalizedSource = pluginSource.TrimStart('.', '/', '\\');
+            candidatePaths.Add(Path.Combine(sourceDir, normalizedSource, normalizedSkillPath));
         }
 
-        // Fallback: relative to sourceDir directly
+        // Repo-root-relative: skill path used directly from sourceDir
         candidatePaths.Add(Path.Combine(sourceDir, normalizedSkillPath));
 
-        // Fallback: walk up from sourceDir looking for the plugin source structure
-        // This handles marketplace.json in a subdirectory (e.g., .github/plugin/)
-        if (pluginSource != null)
+        // Walk up from sourceDir to find repo root (handles marketplace.json in subdirectories)
+        var dir = sourceDir;
+        for (int i = 0; i < 4; i++)
         {
-            var dir = sourceDir;
-            for (int i = 0; i < 4; i++)
+            var parent = Directory.GetParent(dir)?.FullName;
+            if (parent == null || parent == dir) break;
+            dir = parent;
+
+            // Try skill path directly from this ancestor (repo-root-relative convention)
+            candidatePaths.Add(Path.Combine(dir, normalizedSkillPath));
+
+            // Try relative to plugin source from this ancestor
+            if (pluginSource != null)
             {
-                var parent = Directory.GetParent(dir)?.FullName;
-                if (parent == null || parent == dir) break;
-                dir = parent;
-                candidatePaths.Add(Path.Combine(dir, pluginSource, normalizedSkillPath));
+                var normalizedSource = pluginSource.TrimStart('.', '/', '\\');
+                candidatePaths.Add(Path.Combine(dir, normalizedSource, normalizedSkillPath));
             }
         }
 
