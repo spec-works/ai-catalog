@@ -11,7 +11,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>SpecWorks.AiCatalog.Cli</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Description>CLI tool for working with AI Catalog documents (application/ai-catalog+json). Convert, explore, and install AI artifacts.</Description>
     <Authors>SpecWorks</Authors>
     <PackageTags>ai-catalog;ai-card;specworks;cli</PackageTags>
