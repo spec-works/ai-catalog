@@ -71,6 +71,11 @@ jobs:
             --output ./artifacts \
             /p:Version=${{ steps.version.outputs.version }} \
             /p:ContinuousIntegrationBuild=true
+          dotnet pack dotnet/src/AiCatalog.Cli/AiCatalog.Cli.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:ContinuousIntegrationBuild=true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
