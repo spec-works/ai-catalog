@@ -36,7 +36,7 @@ Both the .NET (xUnit) and Python (pytest) implementations consume these fixtures
 
 ### Marketplace Conversion Test Cases
 
-The `marketplace-input.json` and `marketplace-expected.json` pair tests the `convert marketplace` command. The input contains a Claude marketplace format; the expected output is the corresponding AI Catalog document.
+The `marketplace-input.json` and `marketplace-expected.json` pair tests the `migrate` command. The input contains a Claude marketplace format; the expected output is the corresponding AI Catalog document.
 
 ## Key Fields
 

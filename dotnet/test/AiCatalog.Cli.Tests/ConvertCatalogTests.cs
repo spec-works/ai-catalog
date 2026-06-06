@@ -169,14 +169,14 @@ public class ConvertCatalogTests
     }
 
     [Fact]
-    public async Task ConvertCatalog_WithoutFlags_GeneratesAllPlatformOutputs()
+    public async Task Export_WithoutFlags_GeneratesAllPlatformOutputs()
     {
         using var workspace = await TestWorkspace.CreateAsync();
         var rootCommand = new RootCommand("AI Catalog CLI");
-        rootCommand.AddCommand(ConvertCommand.Create());
+        rootCommand.AddCommand(ExportCommand.Create());
 
         var console = new TestConsole();
-        var exitCode = await rootCommand.InvokeAsync($"convert catalog \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\"", console);
+        var exitCode = await rootCommand.InvokeAsync($"export \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\"", console);
 
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, ".github", "plugin", "marketplace.json")));
@@ -185,21 +185,37 @@ public class ConvertCatalogTests
     }
 
     [Fact]
-    public async Task ConvertCatalog_WithSourceDirectory_CopiesSkillContentFromSource()
+    public async Task Export_WithSourceDirectory_CopiesSkillContentFromSource()
     {
         using var workspace = await TestWorkspace.CreateAsync(separateSourceDirectory: true);
         var rootCommand = new RootCommand("AI Catalog CLI");
-        rootCommand.AddCommand(ConvertCommand.Create());
+        rootCommand.AddCommand(ExportCommand.Create());
 
         var console = new TestConsole();
         var exitCode = await rootCommand.InvokeAsync(
-            $"convert catalog \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\" --source-dir \"{workspace.SourceDirectory}\" --github",
+            $"export \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\" --source-dir \"{workspace.SourceDirectory}\" --github",
             console);
 
         Assert.Equal(0, exitCode);
         AssertSkillFile(workspace.OutputDirectory, Path.Combine("plugins", "plugin-a", "skills", "skill-one", "SKILL.md"), SkillOneContent);
         AssertSkillFile(workspace.OutputDirectory, Path.Combine("plugins", "plugin-b", "skills", "skill-two", "SKILL.md"), SkillTwoContent);
         AssertSkillFile(workspace.OutputDirectory, Path.Combine("plugins", "plugin-b", "skills", "skill-three", "SKILL.md"), SkillThreeContent);
+    }
+
+    [Fact]
+    public async Task ConvertCatalog_HiddenCompatCommand_StillWorks()
+    {
+        using var workspace = await TestWorkspace.CreateAsync(separateSourceDirectory: true);
+        var rootCommand = new RootCommand("AI Catalog CLI");
+        rootCommand.AddCommand(ExportCommand.Create());
+
+        var console = new TestConsole();
+        var exitCode = await rootCommand.InvokeAsync(
+            $"export \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\" --source-dir \"{workspace.SourceDirectory}\" --github",
+            console);
+
+        Assert.Equal(0, exitCode);
+        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, ".github", "plugin", "marketplace.json")));
     }
 
     private static void AssertSkillFile(string outputDirectory, string relativePath, string expectedContent)

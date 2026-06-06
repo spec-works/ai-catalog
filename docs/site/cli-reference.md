@@ -83,19 +83,19 @@ Publisher:
 
 ---
 
-### `ai-catalog convert marketplace <file>`
+### `ai-catalog migrate <file>`
 
-Convert a Claude-format `marketplace.json` to a standard `ai-catalog.json` document.
+Migrate a Claude-format `marketplace.json` to a standard `ai-catalog.json` document.
 
 ```bash
-ai-catalog convert marketplace <input-file> [options]
+ai-catalog migrate <input> [options]
 ```
 
 **Arguments:**
 
 | Argument | Description |
 |----------|-------------|
-| `input-file` | Path to the marketplace.json file |
+| `input` | Path to the marketplace.json file |
 
 **Options:**
 
@@ -106,11 +106,57 @@ ai-catalog convert marketplace <input-file> [options]
 **Examples:**
 
 ```bash
-# Convert and print to stdout
-ai-catalog convert marketplace marketplace.json
+# Migrate and print to stdout
+ai-catalog migrate marketplace.json
 
-# Convert and save to file
-ai-catalog convert marketplace marketplace.json -o ai-catalog.json
+# Migrate and save to file
+ai-catalog migrate marketplace.json -o ai-catalog.json
+```
+
+---
+
+### `ai-catalog export <file> -o <dir>`
+
+Export an `ai-catalog.json` file into platform-specific plugin marketplace formats.
+
+```bash
+ai-catalog export <input> -o <output-dir> [options]
+```
+
+**Arguments:**
+
+| Argument | Description |
+|----------|-------------|
+| `input` | Path to the ai-catalog.json file |
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `-o, --output <dir>` | Output directory for generated plugin marketplace files |
+| `--source-dir <dir>` | Base directory for resolving relative plugin source paths |
+| `--github` | Generate GitHub Copilot CLI marketplace output |
+| `--codex` | Generate OpenAI Codex CLI marketplace output |
+| `--claude` | Generate Claude Code plugin marketplace output |
+
+**Examples:**
+
+```bash
+# Export all supported platform outputs
+ai-catalog export ai-catalog.json -o out
+
+# Export only GitHub output
+ai-catalog export ai-catalog.json -o out --github
+```
+
+---
+
+### `ai-catalog publish <file> -o <dir>`
+
+Package a catalog for remote distribution (`zip`, signing, hosting). This command currently prints `Not yet implemented`.
+
+```bash
+ai-catalog publish <input> -o <output-dir>
 ```
 
 ---

@@ -348,37 +348,37 @@ public class MarketplaceIntegrationTests
     #region CLI End-to-End Tests
 
     [Fact]
-    public async Task Cli_ConvertSpecWorks_ExitCodeZero()
+    public async Task Cli_MigrateSpecWorks_ExitCodeZero()
     {
         Assert.True(File.Exists(SpecWorksFixturePath), $"Fixture not found: {SpecWorksFixturePath}");
 
         var rootCommand = new RootCommand("AI Catalog CLI");
-        rootCommand.AddCommand(ConvertCommand.Create());
+        rootCommand.AddCommand(MigrateCommand.Create());
 
         var console = new TestConsole();
         var exitCode = await rootCommand.InvokeAsync(
-            $"convert marketplace \"{SpecWorksFixturePath}\"", console);
+            $"migrate \"{SpecWorksFixturePath}\"", console);
 
         Assert.Equal(0, exitCode);
     }
 
     [Fact]
-    public async Task Cli_ConvertWorkIq_ExitCodeZero()
+    public async Task Cli_MigrateWorkIq_ExitCodeZero()
     {
         Assert.True(File.Exists(WorkIqFixturePath), $"Fixture not found: {WorkIqFixturePath}");
 
         var rootCommand = new RootCommand("AI Catalog CLI");
-        rootCommand.AddCommand(ConvertCommand.Create());
+        rootCommand.AddCommand(MigrateCommand.Create());
 
         var console = new TestConsole();
         var exitCode = await rootCommand.InvokeAsync(
-            $"convert marketplace \"{WorkIqFixturePath}\"", console);
+            $"migrate \"{WorkIqFixturePath}\"", console);
 
         Assert.Equal(0, exitCode);
     }
 
     [Fact]
-    public async Task Cli_ConvertSpecWorks_WritesToOutputFile()
+    public async Task Cli_MigrateSpecWorks_WritesToOutputFile()
     {
         Assert.True(File.Exists(SpecWorksFixturePath));
 
@@ -386,11 +386,11 @@ public class MarketplaceIntegrationTests
         try
         {
             var rootCommand = new RootCommand("AI Catalog CLI");
-            rootCommand.AddCommand(ConvertCommand.Create());
+            rootCommand.AddCommand(MigrateCommand.Create());
 
             var console = new TestConsole();
             var exitCode = await rootCommand.InvokeAsync(
-                $"convert marketplace \"{SpecWorksFixturePath}\" --output \"{outputPath}\"", console);
+                $"migrate \"{SpecWorksFixturePath}\" --output \"{outputPath}\"", console);
 
             Assert.Equal(0, exitCode);
             Assert.True(File.Exists(outputPath));
@@ -400,7 +400,6 @@ public class MarketplaceIntegrationTests
             Assert.Contains("urn:marketplace:spec-works-plugins:markmyword", content);
             Assert.Contains("urn:marketplace:spec-works-plugins:a2a-ask", content);
 
-            // Parse the output file to validate structure
             var catalog = AiCatalogParser.Parse(content);
             Assert.Equal(5, catalog.Entries.Count);
         }
@@ -412,7 +411,7 @@ public class MarketplaceIntegrationTests
     }
 
     [Fact]
-    public async Task Cli_ConvertWorkIq_WritesToOutputFile()
+    public async Task Cli_MigrateWorkIq_WritesToOutputFile()
     {
         Assert.True(File.Exists(WorkIqFixturePath));
 
@@ -420,11 +419,11 @@ public class MarketplaceIntegrationTests
         try
         {
             var rootCommand = new RootCommand("AI Catalog CLI");
-            rootCommand.AddCommand(ConvertCommand.Create());
+            rootCommand.AddCommand(MigrateCommand.Create());
 
             var console = new TestConsole();
             var exitCode = await rootCommand.InvokeAsync(
-                $"convert marketplace \"{WorkIqFixturePath}\" --output \"{outputPath}\"", console);
+                $"migrate \"{WorkIqFixturePath}\" --output \"{outputPath}\"", console);
 
             Assert.Equal(0, exitCode);
             Assert.True(File.Exists(outputPath));
@@ -434,7 +433,6 @@ public class MarketplaceIntegrationTests
             Assert.Contains("urn:marketplace:work-iq:workiq", content);
             Assert.Contains("Microsoft", content);
 
-            // Parse the output file to validate structure
             var catalog = AiCatalogParser.Parse(content);
             Assert.Equal(3, catalog.Entries.Count);
         }
@@ -446,7 +444,7 @@ public class MarketplaceIntegrationTests
     }
 
     [Fact]
-    public async Task Cli_ConvertSpecWorks_OutputFileConforms()
+    public async Task Cli_MigrateSpecWorks_OutputFileConforms()
     {
         Assert.True(File.Exists(SpecWorksFixturePath));
 
@@ -454,11 +452,11 @@ public class MarketplaceIntegrationTests
         try
         {
             var rootCommand = new RootCommand("AI Catalog CLI");
-            rootCommand.AddCommand(ConvertCommand.Create());
+            rootCommand.AddCommand(MigrateCommand.Create());
 
             var console = new TestConsole();
             await rootCommand.InvokeAsync(
-                $"convert marketplace \"{SpecWorksFixturePath}\" --output \"{outputPath}\"", console);
+                $"migrate \"{SpecWorksFixturePath}\" --output \"{outputPath}\"", console);
 
             var content = File.ReadAllText(outputPath);
             var catalog = AiCatalogParser.Parse(content);
@@ -474,7 +472,7 @@ public class MarketplaceIntegrationTests
     }
 
     [Fact]
-    public async Task Cli_ConvertWorkIq_OutputFileConforms()
+    public async Task Cli_ConvertMarketplace_CompatibilityCommandStillWorks()
     {
         Assert.True(File.Exists(WorkIqFixturePath));
 
@@ -482,11 +480,11 @@ public class MarketplaceIntegrationTests
         try
         {
             var rootCommand = new RootCommand("AI Catalog CLI");
-            rootCommand.AddCommand(ConvertCommand.Create());
+            rootCommand.AddCommand(MigrateCommand.Create());
 
             var console = new TestConsole();
             await rootCommand.InvokeAsync(
-                $"convert marketplace \"{WorkIqFixturePath}\" --output \"{outputPath}\"", console);
+                $"migrate \"{WorkIqFixturePath}\" --output \"{outputPath}\"", console);
 
             var content = File.ReadAllText(outputPath);
             var catalog = AiCatalogParser.Parse(content);

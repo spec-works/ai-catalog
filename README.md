@@ -70,8 +70,14 @@ ai-catalog explore https://spec-works.github.io/.well-known/ai-catalog.json --sh
 # Filter by tag
 ai-catalog explore https://spec-works.github.io/.well-known/ai-catalog.json --filter-tag agent
 
-# Convert a marketplace.json to ai-catalog format
-ai-catalog convert marketplace marketplace.json -o ai-catalog.json
+# Migrate a marketplace.json to ai-catalog format
+ai-catalog migrate marketplace.json -o ai-catalog.json
+
+# Export an AI Catalog to platform-specific outputs
+ai-catalog export ai-catalog.json -o out
+
+# Publish a catalog package (stub)
+ai-catalog publish ai-catalog.json -o dist
 
 # Install an artifact from a catalog
 ai-catalog install https://spec-works.github.io/.well-known/ai-catalog.json "urn:specworks:a2a-ask"
@@ -81,27 +87,35 @@ ai-catalog install https://spec-works.github.io/.well-known/ai-catalog.json "urn
 
 | Command | Description |
 |---------|-------------|
+| `ai-catalog migrate <file>` | Migrate a marketplace.json to AI Catalog format |
+| `ai-catalog export <file> -o <dir>` | Export an AI Catalog to platform-specific plugin formats |
+| `ai-catalog publish <file> -o <dir>` | Package a catalog for remote distribution (currently a stub) |
 | `ai-catalog explore <url>` | Fetch and browse an AI Catalog from a URL |
-| `ai-catalog convert marketplace <file>` | Convert a Claude marketplace.json to ai-catalog.json |
 | `ai-catalog install <catalog-url> <entry-id>` | Install an artifact (skill or MCP server) from a catalog |
 
-### `explore`
+### `migrate`
 
-Fetches a catalog from a URL and displays entries in a table. Supports filtering and detail views.
-
-| Option | Description |
-|--------|-------------|
-| `--filter-tag <tag>` | Filter entries by tag |
-| `--filter-media-type <type>` | Filter entries by media type |
-| `--show <identifier>` | Show detailed info for one entry |
-
-### `convert marketplace`
-
-Converts a Claude-format `marketplace.json` into a standard `ai-catalog.json` document.
+Migrates a Claude-format `marketplace.json` into a standard `ai-catalog.json` document.
 
 | Option | Description |
 |--------|-------------|
 | `-o, --output <file>` | Output file path (defaults to stdout) |
+
+### `export`
+
+Exports an `ai-catalog.json` file into platform-specific plugin marketplace formats.
+
+| Option | Description |
+|--------|-------------|
+| `-o, --output <dir>` | Output directory for generated plugin marketplace files |
+| `--source-dir <dir>` | Base directory for resolving relative plugin source paths |
+| `--github` | Generate GitHub Copilot CLI marketplace output |
+| `--codex` | Generate OpenAI Codex CLI marketplace output |
+| `--claude` | Generate Claude Code plugin marketplace output |
+
+### `publish`
+
+Packages a catalog for remote distribution (`zip`, signing, hosting). This command currently prints `Not yet implemented`.
 
 ### `install`
 
