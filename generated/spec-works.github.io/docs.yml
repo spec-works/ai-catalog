@@ -1,0 +1,90 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [main]
+  repository_dispatch:
+    types: [plugins-updated]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            10.0.x
+
+      - name: Install DocFX
+        run: dotnet tool install -g docfx
+
+      - name: Build documentation
+        run: docfx docs/docfx.json
+
+      - name: Copy registry to build output
+        run: |
+          mkdir -p docs/_site/registry
+          cp -r registry/* docs/_site/registry/
+
+      # --- AI Catalog generation steps ---
+
+      - name: Checkout plugins marketplace
+        uses: actions/checkout@v4
+        with:
+          repository: spec-works/plugins
+          path: _plugins
+          sparse-checkout: .github/plugin/marketplace.json
+          sparse-checkout-cone-mode: false
+
+      - name: Checkout ai-catalog CLI source
+        uses: actions/checkout@v4
+        with:
+          repository: spec-works/ai-catalog
+          path: _ai-catalog
+          sparse-checkout: |
+            dotnet/
+          sparse-checkout-cone-mode: true
+
+      - name: Build ai-catalog CLI
+        run: dotnet build _ai-catalog/dotnet/src/AiCatalog.Cli/AiCatalog.Cli.csproj -c Release
+
+      - name: Generate ai-catalog.json
+        run: |
+          mkdir -p docs/_site/.well-known
+          dotnet run --project _ai-catalog/dotnet/src/AiCatalog.Cli/AiCatalog.Cli.csproj -c Release --no-build -- \
+            convert marketplace \
+            _plugins/.github/plugin/marketplace.json \
+            -o docs/_site/.well-known/ai-catalog.json
+
+      # --- End AI Catalog generation ---
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

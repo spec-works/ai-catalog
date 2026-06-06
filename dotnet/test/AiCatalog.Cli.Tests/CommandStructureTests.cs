@@ -116,35 +116,6 @@ public class CommandStructureTests
     }
 
     [Fact]
-    public async Task Publish_Stub_PrintsMessage()
-    {
-        var rootCommand = new RootCommand("AI Catalog CLI");
-        rootCommand.AddCommand(PublishCommand.Create());
-
-        var workspace = Path.Combine(AppContext.BaseDirectory, "publish-stub");
-        Directory.CreateDirectory(workspace);
-
-        try
-        {
-            var inputPath = Path.Combine(workspace, "catalog.json");
-            await File.WriteAllTextAsync(inputPath, "{}");
-
-            var console = new TestConsole();
-            var exitCode = await rootCommand.InvokeAsync($"publish \"{inputPath}\" -o \"{workspace}\"", console);
-
-            Assert.Equal(0, exitCode);
-            Assert.Contains("Not yet implemented", console.Out.ToString());
-        }
-        finally
-        {
-            if (Directory.Exists(workspace))
-            {
-                Directory.Delete(workspace, recursive: true);
-            }
-        }
-    }
-
-    [Fact]
     public async Task Migrate_WithFixture_Succeeds()
     {
         var testcasesDir = Path.Combine(AppContext.BaseDirectory, "testcases");
