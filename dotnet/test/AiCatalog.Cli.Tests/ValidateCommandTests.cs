@@ -90,6 +90,45 @@ public class ValidateCommandTests
         Assert.Contains("0 errors, 1 warnings", console.Out.ToString());
     }
 
+    [Fact]
+    public async Task Validate_DuplicateIdentifiers_ReportsError()
+    {
+        var catalog = new JsonObject
+        {
+            ["specVersion"] = "1.0",
+            ["host"] = new JsonObject
+            {
+                ["displayName"] = "Test Host",
+                ["trustManifest"] = new JsonObject { ["identity"] = "urn:test:host" },
+            },
+            ["entries"] = new JsonArray(
+                new JsonObject
+                {
+                    ["identifier"] = "urn:test:duplicate",
+                    ["displayName"] = "First",
+                    ["mediaType"] = "text/markdown; profile=ai-skill",
+                    ["url"] = "./skill/SKILL.md",
+                },
+                new JsonObject
+                {
+                    ["identifier"] = "urn:test:duplicate",
+                    ["displayName"] = "Second",
+                    ["mediaType"] = "text/markdown; profile=ai-skill",
+                    ["url"] = "./skill/SKILL.md",
+                }),
+        };
+
+        using var workspace = await TestWorkspace.CreateAsync(catalog.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        var rootCommand = new RootCommand("AI Catalog CLI");
+        rootCommand.AddCommand(ValidateCommand.Create());
+
+        var console = new TestConsole();
+        var exitCode = await rootCommand.InvokeAsync($"validate \"{workspace.CatalogPath}\"", console);
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("Duplicate identifier 'urn:test:duplicate'", console.Error.ToString());
+    }
+
     private static string CreateCatalogJson(string mediaType = "text/markdown; profile=ai-skill", string url = "./skill/SKILL.md", string? digest = null)
     {
         var entry = new JsonObject

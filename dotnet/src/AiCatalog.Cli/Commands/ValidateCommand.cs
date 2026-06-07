@@ -90,6 +90,27 @@ public static class ValidateCommand
 
     private static void ValidateEntries(Models.AiCatalog catalog, string inputDirectory, List<ValidationDiagnostic> errors, List<ValidationDiagnostic> warnings)
     {
+        // Check for duplicate identifiers
+        var seenIdentifiers = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int i = 0; i < catalog.Entries.Count; i++)
+        {
+            var id = catalog.Entries[i].Identifier;
+            if (string.IsNullOrWhiteSpace(id))
+                continue;
+
+            if (seenIdentifiers.TryGetValue(id, out var firstIndex))
+            {
+                errors.Add(new ValidationDiagnostic(
+                    DiagnosticSeverity.Error,
+                    $"Duplicate identifier '{id}' (first seen at entries[{firstIndex}])",
+                    $"entries[{i}].identifier"));
+            }
+            else
+            {
+                seenIdentifiers[id] = i;
+            }
+        }
+
         for (int i = 0; i < catalog.Entries.Count; i++)
         {
             var entry = catalog.Entries[i];
