@@ -23,6 +23,7 @@ public class CommandStructureTests
         Assert.Contains("export", output);
         Assert.Contains("publish", output);
         Assert.Contains("explore", output);
+        Assert.Contains("validate", output);
         Assert.Contains("install", output);
         Assert.DoesNotContain("convert", output);
     }
@@ -86,6 +87,20 @@ public class CommandStructureTests
         Assert.Contains("--filter-tag", output);
         Assert.Contains("--filter-media-type", output);
         Assert.Contains("--show", output);
+    }
+
+    [Fact]
+    public async Task ValidateCommand_Help_ShowsOptions()
+    {
+        var rootCommand = new RootCommand("AI Catalog CLI");
+        rootCommand.AddCommand(ValidateCommand.Create());
+
+        var console = new TestConsole();
+        await rootCommand.InvokeAsync("validate --help", console);
+
+        var output = console.Out.ToString()!;
+        Assert.Contains("input", output);
+        Assert.Contains("--strict", output);
     }
 
     [Fact]
@@ -172,11 +187,12 @@ public class CommandStructureTests
 
     private static RootCommand CreateRootCommand()
     {
-        var rootCommand = new RootCommand("AI Catalog CLI — migrate, export, publish, explore, and install AI artifacts");
+        var rootCommand = new RootCommand("AI Catalog CLI — migrate, export, publish, explore, validate, and install AI artifacts");
         rootCommand.AddCommand(MigrateCommand.Create());
         rootCommand.AddCommand(ExportCommand.Create());
         rootCommand.AddCommand(PublishCommand.Create());
         rootCommand.AddCommand(ExploreCommand.Create());
+        rootCommand.AddCommand(ValidateCommand.Create());
         rootCommand.AddCommand(InstallCommand.Create());
         return rootCommand;
     }
