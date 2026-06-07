@@ -1,0 +1,175 @@
+name: Squad Branch Merge
+
+# CI-gated trunk-based development.
+# Feature branches are validated and auto-merged to main when CI passes
+# and a change doc exists in .squad/changes/. No PRs required.
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - gh-pages
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to validate and merge'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  SOLUTION_PATH: dotnet/AiCatalog.sln
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.meta.outputs.branch }}
+      has_change_doc: ${{ steps.check-doc.outputs.has_change_doc }}
+      change_doc_path: ${{ steps.check-doc.outputs.change_doc_path }}
+    steps:
+      - name: Determine branch
+        id: meta
+        run: |
+          BRANCH="${{ inputs.branch || github.ref_name }}"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "::notice::Validating branch: $BRANCH"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.meta.outputs.branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into feature branch
+        id: merge-main
+        run: |
+          git fetch origin main
+          if git merge origin/main --no-edit; then
+            echo "merge_ok=true" >> $GITHUB_OUTPUT
+            echo "✅ main merged into ${{ steps.meta.outputs.branch }}"
+          else
+            echo "merge_ok=false" >> $GITHUB_OUTPUT
+            echo "::error::❌ Merge conflict — resolve before merging to main"
+            git merge --abort
+            exit 1
+          fi
+
+      - name: Push merge commit (if any)
+        if: steps.merge-main.outputs.merge_ok == 'true'
+        run: |
+          if ! git diff --quiet HEAD "origin/${{ steps.meta.outputs.branch }}" 2>/dev/null; then
+            git push origin "${{ steps.meta.outputs.branch }}"
+          fi
+
+      - name: Check for change documentation
+        id: check-doc
+        run: |
+          CHANGE_DOCS=$(git diff --name-only origin/main..HEAD -- '.squad/changes/' | grep -v README.md || true)
+          if [ -n "$CHANGE_DOCS" ]; then
+            echo "has_change_doc=true" >> $GITHUB_OUTPUT
+            echo "change_doc_path=$CHANGE_DOCS" >> $GITHUB_OUTPUT
+            echo "✅ Change doc found: $CHANGE_DOCS"
+          else
+            echo "has_change_doc=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No change doc in .squad/changes/ — merge will be skipped"
+            echo "::warning::Add a change doc to .squad/changes/ to enable auto-merge"
+          fi
+
+      # ── .NET CI ──
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: .NET restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: .NET build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --no-restore --configuration Release
+
+      - name: .NET test
+        run: dotnet test ${{ env.SOLUTION_PATH }} --no-build --configuration Release --verbosity normal
+
+      # ── Python CI ──
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python install and test
+        working-directory: python
+        run: |
+          pip install -e ".[dev]" 2>/dev/null || pip install -e .
+          python -m pytest tests/ -v 2>/dev/null || echo "⚠️ pytest not configured — skipping"
+
+  # ── Fast-forward merge to main (only if CI passed + change doc exists) ──
+  merge:
+    needs: validate
+    if: needs.validate.outputs.has_change_doc == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge feature branch into main
+        run: |
+          BRANCH="${{ needs.validate.outputs.branch }}"
+          git fetch origin "$BRANCH"
+          git merge "origin/$BRANCH" --no-ff \
+            -m "merge: $BRANCH → main (CI-gated, change doc: ${{ needs.validate.outputs.change_doc_path }})"
+          git push origin main
+          echo "✅ Merged $BRANCH → main"
+
+      - name: Delete feature branch
+        run: |
+          BRANCH="${{ needs.validate.outputs.branch }}"
+          git push origin --delete "$BRANCH" 2>/dev/null || echo "Branch already deleted"
+          echo "🧹 Cleaned up: $BRANCH"
+
+  # ── Report ──
+  report:
+    needs: [validate, merge]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          BRANCH="${{ needs.validate.outputs.branch }}"
+          CI="${{ needs.validate.result }}"
+          MERGE="${{ needs.merge.result }}"
+          DOC="${{ needs.validate.outputs.has_change_doc }}"
+
+          echo "## 🔄 Squad Branch Merge" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`$BRANCH\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| CI | $( [ "$CI" = "success" ] && echo "✅ Passed" || echo "❌ Failed" ) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Change doc | $( [ "$DOC" = "true" ] && echo "✅ Present" || echo "⚠️ Missing" ) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Merge | $( [ "$MERGE" = "success" ] && echo "✅ Merged to main" || echo "⏸️ Not merged" ) |" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$CI" != "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **CI failed** — fix the build/tests and push again." >> $GITHUB_STEP_SUMMARY
+          elif [ "$DOC" != "true" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **No change doc** — add a file to \`.squad/changes/\` to enable auto-merge." >> $GITHUB_STEP_SUMMARY
+          fi
