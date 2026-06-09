@@ -5,7 +5,7 @@ using SpecWorks.AiCatalog.Cli.Conversion;
 namespace SpecWorks.AiCatalog.Cli.Commands;
 
 /// <summary>
-/// The <c>export</c> command — projects an AI Catalog into platform-specific formats.
+/// The <c>export</c> command — projects an AI Catalog into the unified plugin layout.
 /// </summary>
 public static class ExportCommand
 {
@@ -22,7 +22,7 @@ public static class ExportCommand
     /// </summary>
     internal static Command Create(HttpClient? httpClient)
     {
-        return Create("export", "Export an AI Catalog to platform-specific plugin formats", httpClient);
+        return Create("export", "Export an AI Catalog to the unified plugin marketplace layout", httpClient);
     }
 
     private static Command Create(string name, string description, HttpClient? httpClient)
@@ -35,18 +35,12 @@ public static class ExportCommand
         outputOption.AddAlias("-o");
 
         var sourceDirOption = new Option<DirectoryInfo?>("--source-dir", "Base directory for resolving relative plugin source paths (defaults to the input file directory)");
-        var githubOption = new Option<bool>("--github", "Generate GitHub Copilot CLI marketplace output");
-        var codexOption = new Option<bool>("--codex", "Generate OpenAI Codex CLI marketplace output");
-        var claudeOption = new Option<bool>("--claude", "Generate Claude Code plugin marketplace output");
 
         var cmd = new Command(name, description)
         {
             inputArgument,
             outputOption,
             sourceDirOption,
-            githubOption,
-            codexOption,
-            claudeOption
         };
 
         cmd.SetHandler(async (InvocationContext context) =>
@@ -62,10 +56,6 @@ public static class ExportCommand
                 return;
             }
 
-            var generateGitHub = context.ParseResult.GetValueForOption(githubOption);
-            var generateCodex = context.ParseResult.GetValueForOption(codexOption);
-            var generateClaude = context.ParseResult.GetValueForOption(claudeOption);
-
             if (!inputFile.Exists)
             {
                 Console.Error.WriteLine($"Error: file not found: {inputFile.FullName}");
@@ -73,49 +63,30 @@ public static class ExportCommand
                 return;
             }
 
-            if (!generateGitHub && !generateCodex && !generateClaude)
-            {
-                generateGitHub = true;
-                generateCodex = true;
-                generateClaude = true;
-            }
-
             var resolvedSourceDirectory = sourceDirectory?.FullName
                 ?? inputFile.Directory?.FullName
                 ?? Directory.GetCurrentDirectory();
 
+            HttpClient? createdClient = null;
+
             try
             {
                 var catalog = await CatalogProjector.LoadCatalogAsync(inputFile.FullName);
-                var client = httpClient ?? new HttpClient();
-                var projectors = new List<CatalogProjector>();
+                var client = httpClient ?? (createdClient = new HttpClient());
+                var projector = new UnifiedProjector(catalog, inputFile.FullName, outputDirectory.FullName, resolvedSourceDirectory, client);
 
-                if (generateGitHub)
-                {
-                    projectors.Add(new GitHubProjector(catalog, inputFile.FullName, outputDirectory.FullName, resolvedSourceDirectory, client));
-                }
+                await projector.ProjectAsync();
 
-                if (generateCodex)
-                {
-                    projectors.Add(new CodexProjector(catalog, inputFile.FullName, outputDirectory.FullName, resolvedSourceDirectory, client));
-                }
-
-                if (generateClaude)
-                {
-                    projectors.Add(new ClaudeProjector(catalog, inputFile.FullName, outputDirectory.FullName, resolvedSourceDirectory, client));
-                }
-
-                foreach (var projector in projectors)
-                {
-                    await projector.ProjectAsync();
-                }
-
-                Console.WriteLine($"Generated {string.Join(", ", projectors.Select(p => p.PlatformName))} output in {outputDirectory.FullName}");
+                Console.WriteLine($"Generated unified plugin output in {outputDirectory.FullName}");
             }
             catch (Exception ex) when (ex is AiCatalogException or HttpRequestException or IOException)
             {
                 Console.Error.WriteLine($"Error: {ex.Message}");
                 context.ExitCode = 1;
+            }
+            finally
+            {
+                createdClient?.Dispose();
             }
         });
 

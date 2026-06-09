@@ -54,9 +54,10 @@ public class CommandStructureTests
         var output = console.Out.ToString()!;
         Assert.Contains("input", output);
         Assert.Contains("--output", output);
-        Assert.Contains("--github", output);
-        Assert.Contains("--codex", output);
-        Assert.Contains("--claude", output);
+        Assert.Contains("--source-dir", output);
+        Assert.DoesNotContain("--github", output);
+        Assert.DoesNotContain("--codex", output);
+        Assert.DoesNotContain("--claude", output);
     }
 
     [Fact]

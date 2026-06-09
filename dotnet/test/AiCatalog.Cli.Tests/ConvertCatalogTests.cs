@@ -47,18 +47,20 @@ public class ConvertCatalogTests
     private const string SkillThreeContent = "# Skill Three\nTest content three";
 
     [Fact]
-    public async Task GitHubProjector_WritesMarketplaceAndSkills()
+    public async Task UnifiedProjector_WritesUnifiedMarketplaceAndSkills()
     {
         using var workspace = await TestWorkspace.CreateAsync();
         var catalog = AiCatalogParser.Parse(CatalogJson);
         using var httpClient = new HttpClient();
 
-        var projector = new GitHubProjector(catalog, workspace.CatalogPath, workspace.OutputDirectory, workspace.SourceDirectory, httpClient);
+        var projector = new UnifiedProjector(catalog, workspace.CatalogPath, workspace.OutputDirectory, workspace.SourceDirectory, httpClient);
 
         await projector.ProjectAsync();
 
-        var marketplacePath = Path.Combine(workspace.OutputDirectory, ".github", "plugin", "marketplace.json");
+        var marketplacePath = Path.Combine(workspace.OutputDirectory, "marketplace.json");
+        var claudeMarketplacePath = Path.Combine(workspace.OutputDirectory, ".claude-plugin", "marketplace.json");
         Assert.True(File.Exists(marketplacePath));
+        Assert.True(File.Exists(claudeMarketplacePath));
 
         using var marketplaceDocument = JsonDocument.Parse(await File.ReadAllTextAsync(marketplacePath));
         var root = marketplaceDocument.RootElement;
@@ -70,106 +72,29 @@ public class ConvertCatalogTests
         Assert.Equal(2, plugins.Length);
 
         var pluginA = plugins.Single(plugin => plugin.GetProperty("name").GetString() == "plugin-a");
-        Assert.Equal("plugins/plugin-a", pluginA.GetProperty("source").GetString());
+        Assert.Equal("./plugins/plugin-a", pluginA.GetProperty("source").GetString());
         Assert.Equal("Test plugin A", pluginA.GetProperty("description").GetString());
         Assert.Equal("1.0.0", pluginA.GetProperty("version").GetString());
         Assert.Equal(new[] { "./skills/skill-one" }, pluginA.GetProperty("skills").EnumerateArray().Select(value => value.GetString()).ToArray());
 
         var pluginB = plugins.Single(plugin => plugin.GetProperty("name").GetString() == "plugin-b");
-        Assert.Equal("plugins/plugin-b", pluginB.GetProperty("source").GetString());
+        Assert.Equal("./plugins/plugin-b", pluginB.GetProperty("source").GetString());
         Assert.Equal(new[] { "./skills/skill-two", "./skills/skill-three" }, pluginB.GetProperty("skills").EnumerateArray().Select(value => value.GetString()).ToArray());
 
-        AssertSkillFile(workspace.OutputDirectory, Path.Combine("plugins", "plugin-a", "skills", "skill-one", "SKILL.md"), SkillOneContent);
-        AssertSkillFile(workspace.OutputDirectory, Path.Combine("plugins", "plugin-b", "skills", "skill-two", "SKILL.md"), SkillTwoContent);
-        AssertSkillFile(workspace.OutputDirectory, Path.Combine("plugins", "plugin-b", "skills", "skill-three", "SKILL.md"), SkillThreeContent);
+        using var claudeMarketplaceDocument = JsonDocument.Parse(await File.ReadAllTextAsync(claudeMarketplacePath));
+        var claudePlugins = claudeMarketplaceDocument.RootElement.GetProperty("plugins").EnumerateArray().ToArray();
+        Assert.Equal(2, claudePlugins.Length);
+
+        var claudePluginA = claudePlugins.Single(plugin => plugin.GetProperty("name").GetString() == "plugin-a");
+        Assert.Equal("plugin-a", claudePluginA.GetProperty("display_name").GetString());
+        Assert.Equal("../plugins/plugin-a/.plugin/plugin.json", claudePluginA.GetProperty("manifest_url").GetString());
+
+        AssertPluginLayout(workspace.OutputDirectory, "plugin-a", "1.0.0", "Test plugin A", new[] { "./skills/skill-one" }, SkillOneContent);
+        AssertPluginLayout(workspace.OutputDirectory, "plugin-b", "2.0.0", "Test plugin B", new[] { "./skills/skill-two", "./skills/skill-three" }, SkillTwoContent, SkillThreeContent);
     }
 
     [Fact]
-    public async Task CodexProjector_WritesMarketplacePluginJsonAndSkills()
-    {
-        using var workspace = await TestWorkspace.CreateAsync();
-        var catalog = AiCatalogParser.Parse(CatalogJson);
-        using var httpClient = new HttpClient();
-
-        var projector = new CodexProjector(catalog, workspace.CatalogPath, workspace.OutputDirectory, workspace.SourceDirectory, httpClient);
-
-        await projector.ProjectAsync();
-
-        var marketplacePath = Path.Combine(workspace.OutputDirectory, ".agents", "plugins", "marketplace.json");
-        Assert.True(File.Exists(marketplacePath));
-
-        using var marketplaceDocument = JsonDocument.Parse(await File.ReadAllTextAsync(marketplacePath));
-        var plugins = marketplaceDocument.RootElement.GetProperty("plugins").EnumerateArray().ToArray();
-        Assert.Equal(2, plugins.Length);
-
-        foreach (var plugin in plugins)
-        {
-            var source = plugin.GetProperty("source");
-            Assert.Equal("local", source.GetProperty("source").GetString());
-            Assert.StartsWith("./plugins/", source.GetProperty("path").GetString());
-        }
-
-        var pluginAJsonPath = Path.Combine(workspace.OutputDirectory, ".agents", "plugins", "plugins", "plugin-a", ".codex-plugin", "plugin.json");
-        var pluginJsonPath = Path.Combine(workspace.OutputDirectory, ".agents", "plugins", "plugins", "plugin-b", ".codex-plugin", "plugin.json");
-        Assert.True(File.Exists(pluginAJsonPath));
-        Assert.True(File.Exists(pluginJsonPath));
-
-        using var pluginDocument = JsonDocument.Parse(await File.ReadAllTextAsync(pluginJsonPath));
-        var pluginRoot = pluginDocument.RootElement;
-        Assert.Equal("plugin-b", pluginRoot.GetProperty("name").GetString());
-        Assert.Equal("2.0.0", pluginRoot.GetProperty("version").GetString());
-        Assert.Equal("Test plugin B", pluginRoot.GetProperty("description").GetString());
-        Assert.Equal("./skills/", pluginRoot.GetProperty("skills").GetString());
-
-        AssertSkillFile(workspace.OutputDirectory, Path.Combine(".agents", "plugins", "plugins", "plugin-a", "skills", "skill-one", "SKILL.md"), SkillOneContent);
-        AssertSkillFile(workspace.OutputDirectory, Path.Combine(".agents", "plugins", "plugins", "plugin-b", "skills", "skill-two", "SKILL.md"), SkillTwoContent);
-        AssertSkillFile(workspace.OutputDirectory, Path.Combine(".agents", "plugins", "plugins", "plugin-b", "skills", "skill-three", "SKILL.md"), SkillThreeContent);
-    }
-
-    [Fact]
-    public async Task ClaudeProjector_WritesMarketplacePluginJsonAndSkills()
-    {
-        using var workspace = await TestWorkspace.CreateAsync();
-        var catalog = AiCatalogParser.Parse(CatalogJson);
-        using var httpClient = new HttpClient();
-
-        var projector = new ClaudeProjector(catalog, workspace.CatalogPath, workspace.OutputDirectory, workspace.SourceDirectory, httpClient);
-
-        await projector.ProjectAsync();
-
-        var marketplacePath = Path.Combine(workspace.OutputDirectory, ".claude-plugin", "marketplace.json");
-        Assert.True(File.Exists(marketplacePath));
-
-        using var marketplaceDocument = JsonDocument.Parse(await File.ReadAllTextAsync(marketplacePath));
-        var plugins = marketplaceDocument.RootElement.GetProperty("plugins").EnumerateArray().ToArray();
-        Assert.Equal(2, plugins.Length);
-
-        foreach (var plugin in plugins)
-        {
-            var source = plugin.GetProperty("source").GetString();
-            Assert.NotNull(source);
-            Assert.StartsWith("./", source);
-        }
-
-        var pluginJsonPath = Path.Combine(workspace.OutputDirectory, ".claude-plugin", "plugins", "plugin-a", ".claude-plugin", "plugin.json");
-        var pluginBJsonPath = Path.Combine(workspace.OutputDirectory, ".claude-plugin", "plugins", "plugin-b", ".claude-plugin", "plugin.json");
-        Assert.True(File.Exists(pluginJsonPath));
-        Assert.True(File.Exists(pluginBJsonPath));
-
-        using var pluginDocument = JsonDocument.Parse(await File.ReadAllTextAsync(pluginJsonPath));
-        var pluginRoot = pluginDocument.RootElement;
-        Assert.Equal("plugin-a", pluginRoot.GetProperty("name").GetString());
-        Assert.Equal("1.0.0", pluginRoot.GetProperty("version").GetString());
-        Assert.Equal("Test plugin A", pluginRoot.GetProperty("description").GetString());
-        Assert.Equal("./skills/", pluginRoot.GetProperty("skills").GetString());
-
-        AssertSkillFile(workspace.OutputDirectory, Path.Combine(".claude-plugin", "plugins", "plugin-a", "skills", "skill-one", "SKILL.md"), SkillOneContent);
-        AssertSkillFile(workspace.OutputDirectory, Path.Combine(".claude-plugin", "plugins", "plugin-b", "skills", "skill-two", "SKILL.md"), SkillTwoContent);
-        AssertSkillFile(workspace.OutputDirectory, Path.Combine(".claude-plugin", "plugins", "plugin-b", "skills", "skill-three", "SKILL.md"), SkillThreeContent);
-    }
-
-    [Fact]
-    public async Task Export_WithoutFlags_GeneratesAllPlatformOutputs()
+    public async Task Export_GeneratesUnifiedOutput()
     {
         using var workspace = await TestWorkspace.CreateAsync();
         var rootCommand = new RootCommand("AI Catalog CLI");
@@ -179,9 +104,11 @@ public class ConvertCatalogTests
         var exitCode = await rootCommand.InvokeAsync($"export \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\"", console);
 
         Assert.Equal(0, exitCode);
-        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, ".github", "plugin", "marketplace.json")));
-        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, ".agents", "plugins", "marketplace.json")));
+        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, "marketplace.json")));
         Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, ".claude-plugin", "marketplace.json")));
+        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, "plugins", "plugin-a", ".plugin", "plugin.json")));
+        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, "plugins", "plugin-a", ".codex-plugin", "plugin.json")));
+        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, "plugins", "plugin-a", ".github", "plugin", "marketplace.json")));
     }
 
     [Fact]
@@ -193,7 +120,7 @@ public class ConvertCatalogTests
 
         var console = new TestConsole();
         var exitCode = await rootCommand.InvokeAsync(
-            $"export \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\" --source-dir \"{workspace.SourceDirectory}\" --github",
+            $"export \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\" --source-dir \"{workspace.SourceDirectory}\"",
             console);
 
         Assert.Equal(0, exitCode);
@@ -203,7 +130,7 @@ public class ConvertCatalogTests
     }
 
     [Fact]
-    public async Task ConvertCatalog_HiddenCompatCommand_StillWorks()
+    public async Task Export_Command_StillWorksWithUnifiedLayout()
     {
         using var workspace = await TestWorkspace.CreateAsync(separateSourceDirectory: true);
         var rootCommand = new RootCommand("AI Catalog CLI");
@@ -211,11 +138,57 @@ public class ConvertCatalogTests
 
         var console = new TestConsole();
         var exitCode = await rootCommand.InvokeAsync(
-            $"export \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\" --source-dir \"{workspace.SourceDirectory}\" --github",
+            $"export \"{workspace.CatalogPath}\" --output \"{workspace.OutputDirectory}\" --source-dir \"{workspace.SourceDirectory}\"",
             console);
 
         Assert.Equal(0, exitCode);
-        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, ".github", "plugin", "marketplace.json")));
+        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, "marketplace.json")));
+        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, ".claude-plugin", "marketplace.json")));
+    }
+
+    private static void AssertPluginLayout(
+        string outputDirectory,
+        string pluginName,
+        string version,
+        string description,
+        string[] expectedSkills,
+        params string[] skillContents)
+    {
+        var pluginRoot = Path.Combine(outputDirectory, "plugins", pluginName);
+        var pluginJsonPath = Path.Combine(pluginRoot, ".plugin", "plugin.json");
+        var codexPluginJsonPath = Path.Combine(pluginRoot, ".codex-plugin", "plugin.json");
+        var githubMarketplacePath = Path.Combine(pluginRoot, ".github", "plugin", "marketplace.json");
+        var readmePath = Path.Combine(pluginRoot, "README.md");
+
+        Assert.True(File.Exists(pluginJsonPath));
+        Assert.True(File.Exists(codexPluginJsonPath));
+        Assert.True(File.Exists(githubMarketplacePath));
+        Assert.True(File.Exists(readmePath));
+        Assert.Contains(description, File.ReadAllText(readmePath));
+
+        using var pluginDocument = JsonDocument.Parse(File.ReadAllText(pluginJsonPath));
+        var pluginRootElement = pluginDocument.RootElement;
+        Assert.Equal(pluginName, pluginRootElement.GetProperty("name").GetString());
+        Assert.Equal(version, pluginRootElement.GetProperty("version").GetString());
+        Assert.Equal(description, pluginRootElement.GetProperty("description").GetString());
+        Assert.Equal("./skills/", pluginRootElement.GetProperty("skills").GetString());
+
+        using var codexPluginDocument = JsonDocument.Parse(File.ReadAllText(codexPluginJsonPath));
+        Assert.Equal(pluginName, codexPluginDocument.RootElement.GetProperty("name").GetString());
+        Assert.Equal("./skills/", codexPluginDocument.RootElement.GetProperty("skills").GetString());
+
+        using var githubMarketplaceDocument = JsonDocument.Parse(File.ReadAllText(githubMarketplacePath));
+        var githubPlugins = githubMarketplaceDocument.RootElement.GetProperty("plugins").EnumerateArray().ToArray();
+        var githubPlugin = Assert.Single(githubPlugins);
+        Assert.Equal(pluginName, githubPlugin.GetProperty("name").GetString());
+        Assert.Equal("./", githubPlugin.GetProperty("source").GetString());
+        Assert.Equal(expectedSkills, githubPlugin.GetProperty("skills").EnumerateArray().Select(value => value.GetString()).ToArray());
+
+        var skillNames = expectedSkills.Select(skill => skill.Replace("./skills/", string.Empty)).ToArray();
+        for (var i = 0; i < skillNames.Length; i++)
+        {
+            AssertSkillFile(outputDirectory, Path.Combine("plugins", pluginName, "skills", skillNames[i], "SKILL.md"), skillContents[i]);
+        }
     }
 
     private static void AssertSkillFile(string outputDirectory, string relativePath, string expectedContent)
