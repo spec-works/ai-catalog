@@ -29,8 +29,7 @@ public sealed class UnifiedProjector : CatalogProjector
 
             await WriteJsonFileAsync(Path.Combine(pluginRoot, ".plugin", "plugin.json"), pluginManifest, cancellationToken);
             await WriteJsonFileAsync(Path.Combine(pluginRoot, ".codex-plugin", "plugin.json"), pluginManifest, cancellationToken);
-            await WriteJsonFileAsync(Path.Combine(pluginRoot, ".github", "plugin", "marketplace.json"), CreatePluginMarketplace(pluginName, entry, skills), cancellationToken);
-            await File.WriteAllTextAsync(Path.Combine(pluginRoot, "README.md"), CreateReadme(pluginName, entry), cancellationToken);
+            await WriteJsonFileAsync(Path.Combine(pluginRoot, ".github", "plugin", "marketplace.json"), CreatePluginMarketplace(pluginName, entry), cancellationToken);
 
             marketplacePlugins.Add(new
             {
@@ -38,7 +37,6 @@ public sealed class UnifiedProjector : CatalogProjector
                 source = $"./plugins/{pluginName}",
                 description = GetEntryDescription(entry),
                 version = GetEntryVersion(entry),
-                skills = skills.Select(skill => $"./skills/{skill.Name}").ToArray(),
             });
 
             claudePlugins.Add(new
@@ -99,7 +97,7 @@ public sealed class UnifiedProjector : CatalogProjector
         skills = "./skills/",
     };
 
-    private object CreatePluginMarketplace(string pluginName, CatalogEntry entry, IReadOnlyList<ResolvedSkill> skills) => new
+    private object CreatePluginMarketplace(string pluginName, CatalogEntry entry) => new
     {
         name = CatalogName,
         metadata = new
@@ -120,18 +118,8 @@ public sealed class UnifiedProjector : CatalogProjector
                 source = "./",
                 description = GetEntryDescription(entry),
                 version = GetEntryVersion(entry),
-                skills = skills.Select(skill => $"./skills/{skill.Name}").ToArray(),
             }
         },
     };
 
-    private string CreateReadme(string pluginName, CatalogEntry entry)
-    {
-        var title = string.IsNullOrWhiteSpace(entry.DisplayName) ? pluginName : entry.DisplayName;
-        var description = GetEntryDescription(entry);
-
-        return string.IsNullOrWhiteSpace(description)
-            ? $"# {title}{Environment.NewLine}"
-            : $"# {title}{Environment.NewLine}{Environment.NewLine}{description}{Environment.NewLine}";
-    }
 }

@@ -75,11 +75,11 @@ public class ConvertCatalogTests
         Assert.Equal("./plugins/plugin-a", pluginA.GetProperty("source").GetString());
         Assert.Equal("Test plugin A", pluginA.GetProperty("description").GetString());
         Assert.Equal("1.0.0", pluginA.GetProperty("version").GetString());
-        Assert.Equal(new[] { "./skills/skill-one" }, pluginA.GetProperty("skills").EnumerateArray().Select(value => value.GetString()).ToArray());
+        Assert.False(pluginA.TryGetProperty("skills", out _));
 
         var pluginB = plugins.Single(plugin => plugin.GetProperty("name").GetString() == "plugin-b");
         Assert.Equal("./plugins/plugin-b", pluginB.GetProperty("source").GetString());
-        Assert.Equal(new[] { "./skills/skill-two", "./skills/skill-three" }, pluginB.GetProperty("skills").EnumerateArray().Select(value => value.GetString()).ToArray());
+        Assert.False(pluginB.TryGetProperty("skills", out _));
 
         using var claudeMarketplaceDocument = JsonDocument.Parse(await File.ReadAllTextAsync(claudeMarketplacePath));
         var claudePlugins = claudeMarketplaceDocument.RootElement.GetProperty("plugins").EnumerateArray().ToArray();
@@ -158,13 +158,11 @@ public class ConvertCatalogTests
         var pluginJsonPath = Path.Combine(pluginRoot, ".plugin", "plugin.json");
         var codexPluginJsonPath = Path.Combine(pluginRoot, ".codex-plugin", "plugin.json");
         var githubMarketplacePath = Path.Combine(pluginRoot, ".github", "plugin", "marketplace.json");
-        var readmePath = Path.Combine(pluginRoot, "README.md");
 
         Assert.True(File.Exists(pluginJsonPath));
         Assert.True(File.Exists(codexPluginJsonPath));
         Assert.True(File.Exists(githubMarketplacePath));
-        Assert.True(File.Exists(readmePath));
-        Assert.Contains(description, File.ReadAllText(readmePath));
+        Assert.False(File.Exists(Path.Combine(pluginRoot, "README.md")));
 
         using var pluginDocument = JsonDocument.Parse(File.ReadAllText(pluginJsonPath));
         var pluginRootElement = pluginDocument.RootElement;
@@ -182,7 +180,7 @@ public class ConvertCatalogTests
         var githubPlugin = Assert.Single(githubPlugins);
         Assert.Equal(pluginName, githubPlugin.GetProperty("name").GetString());
         Assert.Equal("./", githubPlugin.GetProperty("source").GetString());
-        Assert.Equal(expectedSkills, githubPlugin.GetProperty("skills").EnumerateArray().Select(value => value.GetString()).ToArray());
+        Assert.False(githubPlugin.TryGetProperty("skills", out _));
 
         var skillNames = expectedSkills.Select(skill => skill.Replace("./skills/", string.Empty)).ToArray();
         for (var i = 0; i < skillNames.Length; i++)
