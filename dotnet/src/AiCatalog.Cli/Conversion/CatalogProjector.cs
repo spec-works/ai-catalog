@@ -140,10 +140,20 @@ public abstract class CatalogProjector
 
     protected string GetPluginName(CatalogEntry entry)
     {
-        var rawName = !string.IsNullOrWhiteSpace(entry.DisplayName)
-            ? entry.DisplayName
-            : entry.Identifier;
-        return SanitizeName(rawName);
+        if (!string.IsNullOrWhiteSpace(entry.DisplayName))
+        {
+            return SanitizeName(entry.DisplayName);
+        }
+
+        // Use last segment of identifier (after last : or /)
+        var id = entry.Identifier;
+        var lastColon = id.LastIndexOf(':');
+        var lastSlash = id.LastIndexOf('/');
+        var lastSep = Math.Max(lastColon, lastSlash);
+        var segment = lastSep >= 0 && lastSep < id.Length - 1
+            ? id[(lastSep + 1)..]
+            : id;
+        return SanitizeName(segment);
     }
 
     protected string GetEntryDescription(CatalogEntry entry) => entry.Description ?? string.Empty;
