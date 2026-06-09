@@ -392,7 +392,14 @@ public abstract class CatalogProjector
                 return SanitizeName(uri.Host);
             }
 
-            return SanitizeName(identifier);
+            // Use last segment (after last : or /)
+            var lastColon = identifier.LastIndexOf(':');
+            var lastSlash = identifier.LastIndexOf('/');
+            var lastSep = Math.Max(lastColon, lastSlash);
+            var segment = lastSep >= 0 && lastSep < identifier.Length - 1
+                ? identifier[(lastSep + 1)..]
+                : identifier;
+            return SanitizeName(segment);
         }
 
         if (!string.IsNullOrWhiteSpace(Catalog.Host?.DisplayName))
