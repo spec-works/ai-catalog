@@ -44,7 +44,8 @@ public abstract class CatalogProjector
 
     protected string? PublisherIdentifier => Catalog.Entries
         .Select(entry => entry.Publisher?.Identifier)
-        .FirstOrDefault(identifier => !string.IsNullOrWhiteSpace(identifier));
+        .FirstOrDefault(identifier => !string.IsNullOrWhiteSpace(identifier)
+            && !identifier!.StartsWith("urn:", StringComparison.OrdinalIgnoreCase));
 
     public abstract Task ProjectAsync(CancellationToken cancellationToken = default);
 

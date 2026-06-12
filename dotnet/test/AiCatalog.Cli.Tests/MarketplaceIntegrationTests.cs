@@ -319,7 +319,7 @@ public class MarketplaceIntegrationTests
     }
 
     [Fact]
-    public void SpecWorks_ConvertedCatalog_AutoDetectsMinimal()
+    public void SpecWorks_ConvertedCatalog_AutoDetectsDiscoverable()
     {
         var json = File.ReadAllText(SpecWorksFixturePath);
         var catalog = MarketplaceConverter.Convert(json);
@@ -327,12 +327,12 @@ public class MarketplaceIntegrationTests
         var result = AiCatalogValidator.Validate(catalog);
 
         Assert.True(result.IsValid);
-        // Without host, can't be Discoverable — should be Minimal
-        Assert.Equal(ConformanceLevel.Minimal, result.ConformanceLevel);
+        // With host from marketplace owner, should be Discoverable
+        Assert.Equal(ConformanceLevel.Discoverable, result.ConformanceLevel);
     }
 
     [Fact]
-    public void WorkIq_ConvertedCatalog_AutoDetectsMinimal()
+    public void WorkIq_ConvertedCatalog_AutoDetectsDiscoverable()
     {
         var json = File.ReadAllText(WorkIqFixturePath);
         var catalog = MarketplaceConverter.Convert(json);
@@ -340,7 +340,7 @@ public class MarketplaceIntegrationTests
         var result = AiCatalogValidator.Validate(catalog);
 
         Assert.True(result.IsValid);
-        Assert.Equal(ConformanceLevel.Minimal, result.ConformanceLevel);
+        Assert.Equal(ConformanceLevel.Discoverable, result.ConformanceLevel);
     }
 
     #endregion

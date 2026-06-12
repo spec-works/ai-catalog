@@ -29,7 +29,7 @@ public sealed class UnifiedProjector : CatalogProjector
 
             await WriteJsonFileAsync(Path.Combine(pluginRoot, ".plugin", "plugin.json"), pluginManifest, cancellationToken);
             await WriteJsonFileAsync(Path.Combine(pluginRoot, ".codex-plugin", "plugin.json"), pluginManifest, cancellationToken);
-            await WriteJsonFileAsync(Path.Combine(pluginRoot, ".github", "plugin", "marketplace.json"), CreatePluginMarketplace(pluginName, entry), cancellationToken);
+            await WriteJsonFileAsync(Path.Combine(pluginRoot, ".github", "plugin", "plugin.json"), pluginManifest, cancellationToken);
 
             marketplacePlugins.Add(new
             {
@@ -95,31 +95,6 @@ public sealed class UnifiedProjector : CatalogProjector
         version = GetEntryVersion(entry),
         description = GetEntryDescription(entry),
         skills = "./skills/",
-    };
-
-    private object CreatePluginMarketplace(string pluginName, CatalogEntry entry) => new
-    {
-        name = CatalogName,
-        metadata = new
-        {
-            description = CatalogDescription,
-            version = CatalogVersion,
-        },
-        owner = new
-        {
-            name = PublisherName,
-            url = PublisherIdentifier,
-        },
-        plugins = new[]
-        {
-            new
-            {
-                name = pluginName,
-                source = "./",
-                description = GetEntryDescription(entry),
-                version = GetEntryVersion(entry),
-            }
-        },
     };
 
 }

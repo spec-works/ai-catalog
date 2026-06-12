@@ -108,7 +108,7 @@ public class ConvertCatalogTests
         Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, ".claude-plugin", "marketplace.json")));
         Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, "plugins", "plugin-a", ".plugin", "plugin.json")));
         Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, "plugins", "plugin-a", ".codex-plugin", "plugin.json")));
-        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, "plugins", "plugin-a", ".github", "plugin", "marketplace.json")));
+        Assert.True(File.Exists(Path.Combine(workspace.OutputDirectory, "plugins", "plugin-a", ".github", "plugin", "plugin.json")));
     }
 
     [Fact]
@@ -157,11 +157,11 @@ public class ConvertCatalogTests
         var pluginRoot = Path.Combine(outputDirectory, "plugins", pluginName);
         var pluginJsonPath = Path.Combine(pluginRoot, ".plugin", "plugin.json");
         var codexPluginJsonPath = Path.Combine(pluginRoot, ".codex-plugin", "plugin.json");
-        var githubMarketplacePath = Path.Combine(pluginRoot, ".github", "plugin", "marketplace.json");
+        var githubPluginJsonPath = Path.Combine(pluginRoot, ".github", "plugin", "plugin.json");
 
         Assert.True(File.Exists(pluginJsonPath));
         Assert.True(File.Exists(codexPluginJsonPath));
-        Assert.True(File.Exists(githubMarketplacePath));
+        Assert.True(File.Exists(githubPluginJsonPath));
         Assert.False(File.Exists(Path.Combine(pluginRoot, "README.md")));
 
         using var pluginDocument = JsonDocument.Parse(File.ReadAllText(pluginJsonPath));
@@ -175,12 +175,10 @@ public class ConvertCatalogTests
         Assert.Equal(pluginName, codexPluginDocument.RootElement.GetProperty("name").GetString());
         Assert.Equal("./skills/", codexPluginDocument.RootElement.GetProperty("skills").GetString());
 
-        using var githubMarketplaceDocument = JsonDocument.Parse(File.ReadAllText(githubMarketplacePath));
-        var githubPlugins = githubMarketplaceDocument.RootElement.GetProperty("plugins").EnumerateArray().ToArray();
-        var githubPlugin = Assert.Single(githubPlugins);
-        Assert.Equal(pluginName, githubPlugin.GetProperty("name").GetString());
-        Assert.Equal("./", githubPlugin.GetProperty("source").GetString());
-        Assert.False(githubPlugin.TryGetProperty("skills", out _));
+        using var githubPluginDocument = JsonDocument.Parse(File.ReadAllText(githubPluginJsonPath));
+        var githubRootElement = githubPluginDocument.RootElement;
+        Assert.Equal(pluginName, githubRootElement.GetProperty("name").GetString());
+        Assert.Equal("./skills/", githubRootElement.GetProperty("skills").GetString());
 
         var skillNames = expectedSkills.Select(skill => skill.Replace("./skills/", string.Empty)).ToArray();
         for (var i = 0; i < skillNames.Length; i++)

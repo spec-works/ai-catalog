@@ -119,11 +119,25 @@ public static class MarketplaceConverter
                 : ConvertClaudePlugin(plugin));
         }
 
-        return new Models.AiCatalog
+        var catalog = new Models.AiCatalog
         {
             SpecVersion = "1.0",
             Entries = entries
         };
+
+        // Preserve marketplace name and owner as catalog host info for round-trip fidelity
+        if (!string.IsNullOrWhiteSpace(marketplaceName) || sharedPublisher != null)
+        {
+            catalog.Host = new HostInfo
+            {
+                DisplayName = !string.IsNullOrEmpty(sharedPublisher?.DisplayName)
+                    ? sharedPublisher!.DisplayName
+                    : marketplaceName ?? string.Empty,
+                Identifier = marketplaceName,
+            };
+        }
+
+        return catalog;
     }
 
     /// <summary>
