@@ -1,0 +1,35 @@
+{
+  "description": "A Trust Manifest containing signature but no subject is invalid.",
+  "spec_section": "AI Catalog § Manifest Validity; § Subject Object",
+  "spec_revision": {
+    "url": "https://github.com/Agent-Card/ai-card/blob/19208af2f8adbc0a6457e3ff36ce691a304fbd97/specification/ai-catalog.md",
+    "commit": "19208af2f8adbc0a6457e3ff36ce691a304fbd97"
+  },
+  "test_ids": ["V09-TM-N01"],
+  "input": {
+    "specVersion": "0.9",
+    "entries": [
+      {
+        "identifier": "urn:air:contoso.com:research:signed-missing-subject",
+        "type": "application/a2a-agent-card+json",
+        "url": "https://agents.contoso.com/research/agent-card.json",
+        "digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "trustManifests": [
+          {
+            "contributor": "did:web:contoso.com",
+            "signature": {
+              "signer": "did:web:contoso.com",
+              "profile": "did-web-v1",
+              "issuedAt": "2026-09-12T10:00:00Z",
+              "jws": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImFpLWNhdGFsb2ctdHJ1c3QtbWFuaWZlc3QrandzIn0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "expected_error": {
+    "code": "missing_required_member",
+    "member": "subject"
+  }
+}

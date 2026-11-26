@@ -1,0 +1,39 @@
+{
+  "description": "Namespaced extension values and open-object unrecognized members are preserved without being treated as aliases.",
+  "spec_section": "AI Catalog § Extensions; § Unrecognized Members",
+  "spec_revision": {
+    "url": "https://github.com/Agent-Card/ai-card/blob/19208af2f8adbc0a6457e3ff36ce691a304fbd97/specification/ai-catalog.md",
+    "commit": "19208af2f8adbc0a6457e3ff36ce691a304fbd97"
+  },
+  "test_ids": ["V09-EX-P01", "V09-UM-P01"],
+  "input": {
+    "specVersion": "0.9",
+    "extensions": {
+      "com.contoso.catalog": {
+        "region": "west",
+        "enabled": true
+      }
+    },
+    "experimentalCatalogNote": {"owner": "catalog-team"},
+    "entries": [
+      {
+        "identifier": "urn:air:contoso.com:extensions:agent",
+        "type": "application/a2a-agent-card+json",
+        "url": "https://agents.contoso.com/extensions/agent.json",
+        "extensions": {
+          "https://ai-catalog.org/extensions/metadata": {
+            "environment": "staging",
+            "labels": ["research", "internal"]
+          }
+        },
+        "experimentalEntryNote": ["retain", 7]
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "extensions_preserved": true,
+    "unrecognized_members_preserved": true,
+    "unrecognized_members_change_defined_member_semantics": false
+  }
+}

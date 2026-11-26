@@ -30,23 +30,15 @@ internal static class TestFixtureLoader
         }
     }
 
-    // Fixtures that are not AI Catalog documents (used for conversion tests only)
-    private static readonly HashSet<string> s_conversionOnlyFixtures = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "marketplace-input",
-        "marketplace-expected",
-    };
-
     public static IEnumerable<object[]> GetPositiveTestCases()
     {
-        var dir = TestCasesDir;
+        var dir = Path.Combine(TestCasesDir, "v0.9");
+        if (!Directory.Exists(dir))
+            yield break;
+
         foreach (var file in Directory.EnumerateFiles(dir, "*.json"))
         {
             var filename = Path.GetFileNameWithoutExtension(file);
-
-            // Skip conversion-only fixtures (not AI Catalog documents)
-            if (s_conversionOnlyFixtures.Contains(filename))
-                continue;
 
             var json = File.ReadAllText(file);
 
@@ -67,11 +59,11 @@ internal static class TestFixtureLoader
 
     public static IEnumerable<object[]> GetNegativeTestCases()
     {
-        var negDir = Path.Combine(TestCasesDir, "negative");
-        if (!Directory.Exists(negDir))
+        var dir = Path.Combine(TestCasesDir, "v0.9");
+        if (!Directory.Exists(dir))
             yield break;
 
-        foreach (var file in Directory.EnumerateFiles(negDir, "*.json"))
+        foreach (var file in Directory.EnumerateFiles(dir, "*.json"))
         {
             var filename = Path.GetFileNameWithoutExtension(file);
             var json = File.ReadAllText(file);
@@ -88,6 +80,16 @@ internal static class TestFixtureLoader
 
             yield return [filename, json];
         }
+    }
+
+    public static IEnumerable<object[]> GetV09TestCases()
+    {
+        var dir = Path.Combine(TestCasesDir, "v0.9");
+        if (!Directory.Exists(dir))
+            yield break;
+
+        foreach (var file in Directory.EnumerateFiles(dir, "*.json"))
+            yield return [Path.GetFileNameWithoutExtension(file), File.ReadAllText(file)];
     }
 
     public static IEnumerable<object[]> GetNegativeTestCasesIncludingInvalidJson()
@@ -125,6 +127,14 @@ internal static class TestFixtureLoader
     public static string GetExpectedError(string fixtureJson)
     {
         using var doc = JsonDocument.Parse(fixtureJson);
-        return doc.RootElement.GetProperty("expected_error").GetString()!;
+        var expected = doc.RootElement.GetProperty("expected_error");
+        if (expected.TryGetProperty("member", out var member))
+            return member.GetString()!.Replace("subject.", string.Empty, StringComparison.Ordinal);
+        return expected.GetProperty("code").GetString() switch
+        {
+            "exactly_one_content_source" => "exactly one",
+            "duplicate_entry_key" => "duplicate",
+            _ => "invalid"
+        };
     }
 }

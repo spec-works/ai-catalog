@@ -11,6 +11,6 @@ public enum ConformanceLevel
     /// <summary>Level 2: Minimal + host with displayName.</summary>
     Discoverable = 2,
 
-    /// <summary>Level 3: Discoverable + trustManifest on entries and/or host.</summary>
+    /// <summary>Level 3: verified trust; structural validation alone cannot establish this level.</summary>
     Trusted = 3
 }

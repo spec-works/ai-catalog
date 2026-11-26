@@ -1,0 +1,22 @@
+{
+  "description": "An entry with neither url nor data violates the exactly-one content source rule.",
+  "spec_section": "AI Catalog § Catalog Entry — url and data",
+  "spec_revision": {
+    "url": "https://github.com/Agent-Card/ai-card/blob/19208af2f8adbc0a6457e3ff36ce691a304fbd97/specification/ai-catalog.md",
+    "commit": "19208af2f8adbc0a6457e3ff36ce691a304fbd97"
+  },
+  "test_ids": ["V09-CE-N02"],
+  "input": {
+    "specVersion": "0.9",
+    "entries": [
+      {
+        "identifier": "urn:air:contoso.com:missing-content",
+        "type": "application/json"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": "exactly_one_content_source",
+    "members": ["url", "data"]
+  }
+}

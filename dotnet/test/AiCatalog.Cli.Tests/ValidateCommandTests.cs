@@ -24,7 +24,7 @@ public class ValidateCommandTests
         var exitCode = await rootCommand.InvokeAsync($"validate \"{workspace.CatalogPath}\"", console);
 
         Assert.Equal(0, exitCode);
-        Assert.Contains("Conformance level: Trusted", console.Out.ToString());
+        Assert.Contains("Conformance level: Discoverable", console.Out.ToString());
         Assert.Contains("0 errors, 0 warnings", console.Out.ToString());
         Assert.Equal(string.Empty, console.Error.ToString());
     }
@@ -58,6 +58,46 @@ public class ValidateCommandTests
         Assert.Contains("Warnings:", console.Out.ToString());
         Assert.Contains("Unknown media type 'application/x-custom-agent'", console.Out.ToString());
         Assert.Contains("0 errors, 1 warnings", console.Out.ToString());
+    }
+
+    [Fact]
+    public async Task Validate_SpecKnownArtifactTypes_DoNotReportWarnings()
+    {
+        var knownTypes = new[]
+        {
+            "application/ai-catalog+json",
+            "application/agent-card+json",
+            "application/a2a-agent-card+json",
+            "application/mcp-server-card+json",
+            "application/agent-skills+json",
+            "application/agent-skills+md",
+            "application/agent-skills+zip",
+            "application/agent-skills+gzip",
+            "application/agent-plugins+zip",
+            "application/agent-plugins+gzip",
+        };
+        var catalog = new JsonObject
+        {
+            ["specVersion"] = "0.9",
+            ["entries"] = new JsonArray(knownTypes.Select(type => (JsonNode?)new JsonObject
+            {
+                ["identifier"] = $"urn:test:{type}",
+                ["type"] = type,
+                ["url"] = "https://example.com/artifact",
+            }).ToArray()),
+        };
+
+        using var workspace = await TestWorkspace.CreateAsync(
+            catalog.ToJsonString(new JsonSerializerOptions { WriteIndented = true }),
+            createSkillFile: false);
+        var rootCommand = new RootCommand("AI Catalog CLI");
+        rootCommand.AddCommand(ValidateCommand.Create());
+
+        var console = new TestConsole();
+        var exitCode = await rootCommand.InvokeAsync($"validate \"{workspace.CatalogPath}\"", console);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("0 errors, 0 warnings", console.Out.ToString());
     }
 
     [Fact]
@@ -95,7 +135,7 @@ public class ValidateCommandTests
     {
         var catalog = new JsonObject
         {
-            ["specVersion"] = "1.0",
+            ["specVersion"] = "0.9",
             ["host"] = new JsonObject
             {
                 ["displayName"] = "Test Host",
@@ -106,14 +146,14 @@ public class ValidateCommandTests
                 {
                     ["identifier"] = "urn:test:duplicate",
                     ["displayName"] = "First",
-                    ["mediaType"] = "text/markdown; profile=ai-skill",
+                    ["type"] = "text/markdown; profile=ai-skill",
                     ["url"] = "./skill/SKILL.md",
                 },
                 new JsonObject
                 {
                     ["identifier"] = "urn:test:duplicate",
                     ["displayName"] = "Second",
-                    ["mediaType"] = "text/markdown; profile=ai-skill",
+                    ["type"] = "text/markdown; profile=ai-skill",
                     ["url"] = "./skill/SKILL.md",
                 }),
         };
@@ -126,7 +166,44 @@ public class ValidateCommandTests
         var exitCode = await rootCommand.InvokeAsync($"validate \"{workspace.CatalogPath}\"", console);
 
         Assert.Equal(1, exitCode);
-        Assert.Contains("Duplicate identifier 'urn:test:duplicate'", console.Error.ToString());
+        Assert.Contains("duplicate identifier 'urn:test:duplicate'", console.Error.ToString());
+    }
+
+    [Fact]
+    public async Task Validate_SameIdentifierWithDifferentVersions_IsAllowed()
+    {
+        var catalog = new JsonObject
+        {
+            ["specVersion"] = "0.9",
+            ["host"] = new JsonObject { ["displayName"] = "Test Host" },
+            ["entries"] = new JsonArray(
+                new JsonObject
+                {
+                    ["identifier"] = "urn:test:versions",
+                    ["type"] = "application/json",
+                    ["url"] = "https://example.com/v1.json",
+                    ["version"] = "1.0.0",
+                },
+                new JsonObject
+                {
+                    ["identifier"] = "urn:test:versions",
+                    ["type"] = "application/json",
+                    ["url"] = "https://example.com/v2.json",
+                    ["version"] = "2.0.0",
+                }),
+        };
+
+        using var workspace = await TestWorkspace.CreateAsync(
+            catalog.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        var rootCommand = new RootCommand("AI Catalog CLI");
+        rootCommand.AddCommand(ValidateCommand.Create());
+
+        var console = new TestConsole();
+        var exitCode = await rootCommand.InvokeAsync($"validate \"{workspace.CatalogPath}\"", console);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("0 errors", console.Out.ToString());
+        Assert.Equal(string.Empty, console.Error.ToString());
     }
 
     private static string CreateCatalogJson(string mediaType = "text/markdown; profile=ai-skill", string url = "./skill/SKILL.md", string? digest = null)
@@ -135,28 +212,21 @@ public class ValidateCommandTests
         {
             ["identifier"] = "urn:test:skill",
             ["displayName"] = "Test Skill",
-            ["mediaType"] = mediaType,
+            ["type"] = mediaType,
             ["url"] = url,
         };
 
         if (digest is not null)
         {
-            entry["metadata"] = new JsonObject
-            {
-                ["digest"] = digest,
-            };
+            entry["digest"] = digest;
         }
 
         var catalog = new JsonObject
         {
-            ["specVersion"] = "1.0",
+            ["specVersion"] = "0.9",
             ["host"] = new JsonObject
             {
                 ["displayName"] = "Test Host",
-                ["trustManifest"] = new JsonObject
-                {
-                    ["identity"] = "urn:test:host",
-                },
             },
             ["entries"] = new JsonArray(entry),
         };

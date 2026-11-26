@@ -1,0 +1,24 @@
+{
+  "description": "The legacy-only mediaType member does not satisfy the required v0.9 type member.",
+  "spec_section": "AI Catalog § Catalog Entry — type; § Unrecognized Members",
+  "spec_revision": {
+    "url": "https://github.com/Agent-Card/ai-card/blob/19208af2f8adbc0a6457e3ff36ce691a304fbd97/specification/ai-catalog.md",
+    "commit": "19208af2f8adbc0a6457e3ff36ce691a304fbd97"
+  },
+  "test_ids": ["V09-CE-N04"],
+  "input": {
+    "specVersion": "0.9",
+    "entries": [
+      {
+        "identifier": "urn:air:contoso.com:legacy-media-type",
+        "mediaType": "application/json",
+        "url": "https://data.contoso.com/item.json"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": "missing_required_member",
+    "member": "type",
+    "legacy_member_is_alias": false
+  }
+}

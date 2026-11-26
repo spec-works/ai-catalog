@@ -121,7 +121,7 @@ public static class MarketplaceConverter
 
         var catalog = new Models.AiCatalog
         {
-            SpecVersion = "1.0",
+            SpecVersion = "0.9",
             Entries = entries
         };
 
@@ -273,7 +273,7 @@ public static class MarketplaceConverter
             {
                 var nestedCatalog = new Models.AiCatalog
                 {
-                    SpecVersion = "1.0",
+                    SpecVersion = "0.9",
                     Entries = skillEntries
                 };
 

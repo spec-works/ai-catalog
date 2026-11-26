@@ -1,0 +1,22 @@
+{
+  "description": "A catalog entry missing its required type member is invalid.",
+  "spec_section": "AI Catalog § Catalog Entry — type",
+  "spec_revision": {
+    "url": "https://github.com/Agent-Card/ai-card/blob/19208af2f8adbc0a6457e3ff36ce691a304fbd97/specification/ai-catalog.md",
+    "commit": "19208af2f8adbc0a6457e3ff36ce691a304fbd97"
+  },
+  "test_ids": ["V09-CE-N03"],
+  "input": {
+    "specVersion": "0.9",
+    "entries": [
+      {
+        "identifier": "urn:air:contoso.com:missing-type",
+        "url": "https://agents.contoso.com/item.json"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": "missing_required_member",
+    "member": "type"
+  }
+}

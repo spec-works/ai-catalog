@@ -2,8 +2,6 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO.Compression;
 using System.Security.Cryptography;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using SpecWorks.AiCatalog.Parsing;
 using SpecWorks.AiCatalog.Serialization;
 
@@ -111,8 +109,8 @@ public static class PublishCommand
             }
 
             entry.Url = artifact.RelativeUrl;
-            entry.MediaType = artifact.MediaType;
-            entry.Metadata = AddDigest(entry.Metadata, artifact.Digest);
+            entry.Type = artifact.MediaType;
+            entry.Digest = artifact.Digest;
 
             stats.LocalEntries++;
             if (artifact.IsPackage)
@@ -148,7 +146,7 @@ public static class PublishCommand
         Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
         File.Copy(sourcePath, destinationPath, overwrite: true);
 
-        return CreatePublishedArtifact(destinationPath, relativeUrl, "text/markdown; profile=ai-skill", isPackage: false);
+        return CreatePublishedArtifact(destinationPath, relativeUrl, "application/agent-skills+md", isPackage: false);
     }
 
     private static PublishedArtifact PublishSkillDirectory(string sourceDirectory, string outputDirectory, string slug)
@@ -168,7 +166,7 @@ public static class PublishCommand
         }
 
         ZipFile.CreateFromDirectory(sourceDirectory, zipPath, CompressionLevel.Optimal, includeBaseDirectory: false);
-        return CreatePublishedArtifact(zipPath, $"packages/{slug}.zip", "application/ai-skills+zip", isPackage: true);
+        return CreatePublishedArtifact(zipPath, $"packages/{slug}.zip", "application/agent-skills+zip", isPackage: true);
     }
 
     private static bool IsSimpleSkillDirectory(string sourceDirectory, out string skillFile)
@@ -198,23 +196,6 @@ public static class PublishCommand
         using var stream = File.OpenRead(filePath);
         var hash = SHA256.HashData(stream);
         return $"sha256:{Convert.ToHexString(hash).ToLowerInvariant()}";
-    }
-
-    private static JsonElement AddDigest(JsonElement? metadata, string digest)
-    {
-        JsonObject metadataObject;
-
-        if (metadata.HasValue && metadata.Value.ValueKind == JsonValueKind.Object)
-        {
-            metadataObject = JsonNode.Parse(metadata.Value.GetRawText())?.AsObject() ?? new JsonObject();
-        }
-        else
-        {
-            metadataObject = new JsonObject();
-        }
-
-        metadataObject["digest"] = digest;
-        return JsonSerializer.SerializeToElement(metadataObject);
     }
 
     private static string GetEntrySlug(string identifier)

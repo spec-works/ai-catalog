@@ -2,7 +2,6 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.Security.Cryptography;
-using System.Text.Json;
 using SpecWorks.AiCatalog.Parsing;
 using SpecWorks.AiCatalog.Validation;
 
@@ -16,6 +15,15 @@ public static class ValidateCommand
     private static readonly HashSet<string> s_knownMediaTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "application/ai-catalog+json",
+        "application/agent-card+json",
+        "application/a2a-agent-card+json",
+        "application/mcp-server-card+json",
+        "application/agent-skills+json",
+        "application/agent-skills+md",
+        "application/agent-skills+zip",
+        "application/agent-skills+gzip",
+        "application/agent-plugins+zip",
+        "application/agent-plugins+gzip",
         "application/ai-skills+zip",
         "text/markdown; profile=ai-skill",
         "application/vnd.mcp.server-card+json",
@@ -90,27 +98,6 @@ public static class ValidateCommand
 
     private static void ValidateEntries(Models.AiCatalog catalog, string inputDirectory, List<ValidationDiagnostic> errors, List<ValidationDiagnostic> warnings)
     {
-        // Check for duplicate identifiers
-        var seenIdentifiers = new Dictionary<string, int>(StringComparer.Ordinal);
-        for (int i = 0; i < catalog.Entries.Count; i++)
-        {
-            var id = catalog.Entries[i].Identifier;
-            if (string.IsNullOrWhiteSpace(id))
-                continue;
-
-            if (seenIdentifiers.TryGetValue(id, out var firstIndex))
-            {
-                errors.Add(new ValidationDiagnostic(
-                    DiagnosticSeverity.Error,
-                    $"Duplicate identifier '{id}' (first seen at entries[{firstIndex}])",
-                    $"entries[{i}].identifier"));
-            }
-            else
-            {
-                seenIdentifiers[id] = i;
-            }
-        }
-
         for (int i = 0; i < catalog.Entries.Count; i++)
         {
             var entry = catalog.Entries[i];
@@ -149,17 +136,18 @@ public static class ValidateCommand
                 continue;
             }
 
-            if (!fileExists || !TryGetDigest(entry.Metadata, out var digest))
+            if (!fileExists || string.IsNullOrWhiteSpace(entry.Digest))
             {
                 continue;
             }
 
+            var digest = entry.Digest;
             if (!digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase))
             {
                 errors.Add(new ValidationDiagnostic(
                     DiagnosticSeverity.Error,
                     $"Unsupported digest format '{digest}'; expected sha256:hexvalue",
-                    $"{entryPrefix}.metadata.digest"));
+                    $"{entryPrefix}.digest"));
                 continue;
             }
 
@@ -169,7 +157,7 @@ public static class ValidateCommand
                 errors.Add(new ValidationDiagnostic(
                     DiagnosticSeverity.Error,
                     $"Digest mismatch for '{resolvedPath}': expected {digest}, actual {actualDigest}",
-                    $"{entryPrefix}.metadata.digest"));
+                    $"{entryPrefix}.digest"));
             }
         }
     }
@@ -208,24 +196,6 @@ public static class ValidateCommand
             error = ex.Message;
             return false;
         }
-    }
-
-    private static bool TryGetDigest(JsonElement? metadata, out string digest)
-    {
-        digest = string.Empty;
-
-        if (!metadata.HasValue || metadata.Value.ValueKind != JsonValueKind.Object)
-        {
-            return false;
-        }
-
-        if (!metadata.Value.TryGetProperty("digest", out var digestElement) || digestElement.ValueKind != JsonValueKind.String)
-        {
-            return false;
-        }
-
-        digest = digestElement.GetString() ?? string.Empty;
-        return !string.IsNullOrWhiteSpace(digest);
     }
 
     private static string ComputeDigest(string filePath)

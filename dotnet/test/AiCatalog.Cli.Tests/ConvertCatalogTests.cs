@@ -12,7 +12,7 @@ public class ConvertCatalogTests
 {
     private const string CatalogJson = """
 {
-  "specVersion": "1.0",
+  "specVersion": "0.9",
   "host": {
     "identifier": "test-catalog",
     "displayName": "Test Catalog"
@@ -21,7 +21,7 @@ public class ConvertCatalogTests
     {
       "identifier": "urn:test:plugin-a",
       "displayName": "plugin-a",
-      "mediaType": "application/vnd.copilot.plugin+json",
+      "type": "application/vnd.copilot.plugin+json",
       "url": "plugins/plugin-a",
       "version": "1.0.0",
       "description": "Test plugin A",
@@ -31,7 +31,7 @@ public class ConvertCatalogTests
     {
       "identifier": "urn:test:plugin-b",
       "displayName": "plugin-b",
-      "mediaType": "application/vnd.copilot.plugin+json",
+      "type": "application/vnd.copilot.plugin+json",
       "url": "plugins/plugin-b",
       "version": "2.0.0",
       "description": "Test plugin B",

@@ -1,0 +1,29 @@
+{
+  "description": "Two entries with the same identifier and no versions violate catalog uniqueness.",
+  "spec_section": "AI Catalog § Multi-Version Entries",
+  "spec_revision": {
+    "url": "https://github.com/Agent-Card/ai-card/blob/19208af2f8adbc0a6457e3ff36ce691a304fbd97/specification/ai-catalog.md",
+    "commit": "19208af2f8adbc0a6457e3ff36ce691a304fbd97"
+  },
+  "test_ids": ["V09-MV-N01"],
+  "input": {
+    "specVersion": "0.9",
+    "entries": [
+      {
+        "identifier": "urn:air:contoso.com:research:agent",
+        "type": "application/a2a-agent-card+json",
+        "url": "https://agents.contoso.com/research/agent-v1.json"
+      },
+      {
+        "identifier": "urn:air:contoso.com:research:agent",
+        "type": "application/a2a-agent-card+json",
+        "url": "https://agents.contoso.com/research/agent-v2.json"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": "duplicate_entry_key",
+    "key": ["identifier"],
+    "identifier": "urn:air:contoso.com:research:agent"
+  }
+}
