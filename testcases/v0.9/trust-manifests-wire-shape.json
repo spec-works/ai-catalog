@@ -1,0 +1,47 @@
+{
+  "description": "A signed Trust Manifest uses the v0.9 trustManifests array, contributor, subject, and signature wire shapes; structural validity does not establish trust.",
+  "spec_section": "AI Catalog § Trust Manifest; § Contributor Identity; § Subject Object; § Signature Object; § Conformance Levels — Level 3: Trusted Catalog",
+  "spec_revision": {
+    "url": "https://github.com/Agent-Card/ai-card/blob/19208af2f8adbc0a6457e3ff36ce691a304fbd97/specification/ai-catalog.md",
+    "commit": "19208af2f8adbc0a6457e3ff36ce691a304fbd97"
+  },
+  "test_ids": ["V09-TM-P01", "V09-TM-P02"],
+  "input": {
+    "specVersion": "0.9",
+    "entries": [
+      {
+        "identifier": "urn:air:contoso.com:research:agent",
+        "version": "2.1.0",
+        "type": "application/a2a-agent-card+json",
+        "url": "https://agents.contoso.com/research/agent-card.json",
+        "digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "trustManifests": [
+          {
+            "contributor": "did:web:contoso.com",
+            "subject": {
+              "identifier": "urn:air:contoso.com:research:agent",
+              "version": "2.1.0",
+              "type": "application/a2a-agent-card+json",
+              "digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            },
+            "signature": {
+              "signer": "did:web:contoso.com",
+              "profile": "did-web-v1",
+              "issuedAt": "2026-09-12T10:00:00Z",
+              "jws": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImFpLWNhdGFsb2ctdHJ1c3QtbWFuaWZlc3QrandzIn0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "trust_manifests_is_array": true,
+    "contributor_is_string": true,
+    "subject_has_identifier_type_version_digest": true,
+    "signature_has_signer_profile_issued_at_jws": true,
+    "structural_validation_establishes_trust": false,
+    "cryptographic_verification_asserted": false
+  }
+}

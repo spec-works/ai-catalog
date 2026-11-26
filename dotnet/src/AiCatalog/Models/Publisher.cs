@@ -16,10 +16,19 @@ public sealed class Publisher
     [JsonPropertyName("displayName")]
     public string DisplayName { get; set; } = string.Empty;
 
-    /// <summary>Optional identity type (e.g., "did", "urn").</summary>
+    /// <summary>Optional type hint for the publisher identifier.</summary>
     [JsonPropertyName("identityType")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? IdentityType { get; set; }
+    public string? IdentityType
+    {
+        get => _identityType;
+        set
+        {
+            ExplicitNullMemberTracker.Clear(this, "identityType");
+            _identityType = value;
+        }
+    }
+    private string? _identityType;
 
     /// <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
     [JsonExtensionData]

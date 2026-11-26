@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using SpecWorks.AiCatalog.Models;
 
 namespace SpecWorks.AiCatalog.Parsing;
@@ -23,7 +22,7 @@ public class AiCatalogParseException : AiCatalogException
 public static partial class AiCatalogParser
 {
     /// <summary>The major version of the spec this library supports.</summary>
-    internal const int SupportedMajorVersion = 1;
+    internal const int SupportedMajorVersion = 0;
 
     private static readonly JsonSerializerOptions s_options = new()
     {
@@ -94,24 +93,28 @@ public static partial class AiCatalogParser
                 $"root document must be a JSON object, got {root.ValueKind.ToString().ToLowerInvariant()}");
         }
 
-        // Validate specVersion is present, correct type, and valid format (VH-1, VH-4)
-        ValidateSpecVersion(root);
+        RejectDuplicateMembers(root, "$");
 
-        // Validate entries is present and correct type
-        ValidateEntriesType(root);
-
-        // Validate host displayName type if host is present
-        ValidateHostDisplayNameType(root);
-
-        // Validate entry fields types
-        ValidateEntryFieldTypes(root);
-
-        // Deserialize using System.Text.Json
-        var rawJson = root.GetRawText();
         try
         {
-            var catalog = JsonSerializer.Deserialize<Models.AiCatalog>(rawJson, s_options)
+            var catalog = JsonSerializer.Deserialize<Models.AiCatalog>(root.GetRawText(), s_options)
                 ?? throw new AiCatalogParseException("deserialization returned null");
+            catalog.HasEntriesMember = root.TryGetProperty("entries", out _);
+            CollectExplicitNullTypedMembers(root, catalog);
+            if (catalog.Entries is not null &&
+                root.TryGetProperty("entries", out var entries) &&
+                entries.ValueKind == JsonValueKind.Array)
+            {
+                var index = 0;
+                foreach (var entryElement in entries.EnumerateArray())
+                {
+                    if (index < catalog.Entries.Count &&
+                        catalog.Entries[index] is { } parsedEntry &&
+                        entryElement.ValueKind == JsonValueKind.Object)
+                        parsedEntry.HasUrlMember = entryElement.TryGetProperty("url", out _);
+                    index++;
+                }
+            }
             return catalog;
         }
         catch (JsonException ex)
@@ -120,139 +123,145 @@ public static partial class AiCatalogParser
         }
     }
 
-    private static void ValidateSpecVersion(JsonElement root)
+    private static void RejectDuplicateMembers(JsonElement element, string path)
     {
-        if (!root.TryGetProperty("specVersion", out var specVersionElement))
+        switch (element.ValueKind)
         {
-            throw new AiCatalogParseException("missing required field: specVersion");
-        }
-
-        if (specVersionElement.ValueKind == JsonValueKind.Null)
-        {
-            throw new AiCatalogParseException("specVersion must be a non-null string");
-        }
-
-        if (specVersionElement.ValueKind != JsonValueKind.String)
-        {
-            throw new AiCatalogParseException(
-                $"specVersion must be a string, got {JsonValueKindName(specVersionElement.ValueKind)}");
-        }
-
-        var specVersion = specVersionElement.GetString();
-        if (string.IsNullOrEmpty(specVersion))
-        {
-            throw new AiCatalogParseException("specVersion must not be empty");
-        }
-
-        // VH-1: specVersion MUST be "Major.Minor" with non-negative integers
-        if (!MajorMinorPattern().IsMatch(specVersion))
-        {
-            // Differentiate: does it have the right structure but non-integer/negative parts?
-            var dotParts = specVersion.Split('.');
-            if (dotParts.Length == 2)
+            case JsonValueKind.Object:
             {
-                // Has two segments but they aren't non-negative integers
-                throw new AiCatalogParseException(
-                    $"specVersion major and minor components must be non-negative integers, found '{specVersion}'");
-            }
-            throw new AiCatalogParseException(
-                $"specVersion must be in Major.Minor format (e.g., \"1.0\"), found '{specVersion}'");
-        }
-
-        // VH-5/VH-6: Check major version compatibility
-        var parts = specVersion.Split('.');
-        if (int.TryParse(parts[0], out var major) && major > SupportedMajorVersion)
-        {
-            throw new AiCatalogParseException(
-                $"specVersion '{specVersion}' has unsupported major version {major}; this library supports major version {SupportedMajorVersion}");
-        }
-    }
-
-    private static void ValidateEntriesType(JsonElement root)
-    {
-        if (!root.TryGetProperty("entries", out var entriesElement))
-        {
-            throw new AiCatalogParseException("missing required field: entries");
-        }
-
-        if (entriesElement.ValueKind != JsonValueKind.Array)
-        {
-            throw new AiCatalogParseException(
-                $"entries must be an array, got {JsonValueKindName(entriesElement.ValueKind)}");
-        }
-    }
-
-    private static void ValidateHostDisplayNameType(JsonElement root)
-    {
-        if (!root.TryGetProperty("host", out var hostElement) || hostElement.ValueKind != JsonValueKind.Object)
-            return;
-
-        if (hostElement.TryGetProperty("displayName", out var dnElement) && dnElement.ValueKind != JsonValueKind.String)
-        {
-            throw new AiCatalogParseException(
-                $"host displayName must be a string, got {JsonValueKindName(dnElement.ValueKind)}");
-        }
-    }
-
-    private static void ValidateEntryFieldTypes(JsonElement root)
-    {
-        if (!root.TryGetProperty("entries", out var entriesElement) || entriesElement.ValueKind != JsonValueKind.Array)
-            return;
-
-        int idx = 0;
-        foreach (var entry in entriesElement.EnumerateArray())
-        {
-            if (entry.ValueKind != JsonValueKind.Object)
-            {
-                idx++;
-                continue;
-            }
-
-            // Validate updatedAt type
-            if (entry.TryGetProperty("updatedAt", out var updatedAt) && updatedAt.ValueKind != JsonValueKind.String)
-            {
-                throw new AiCatalogParseException(
-                    $"updatedAt must be a string (RFC 3339 datetime), got {JsonValueKindName(updatedAt.ValueKind)}");
-            }
-
-            // Validate tags type
-            if (entry.TryGetProperty("tags", out var tags))
-            {
-                if (tags.ValueKind != JsonValueKind.Array)
+                var names = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var property in element.EnumerateObject())
                 {
-                    throw new AiCatalogParseException(
-                        $"tags must be an array of strings, got {JsonValueKindName(tags.ValueKind)}");
-                }
-
-                int tagIdx = 0;
-                foreach (var tag in tags.EnumerateArray())
-                {
-                    if (tag.ValueKind != JsonValueKind.String)
-                    {
+                    if (!names.Add(property.Name))
                         throw new AiCatalogParseException(
-                            $"tags must be an array of strings, found non-string element at index {tagIdx}");
-                    }
-                    tagIdx++;
+                            $"duplicate JSON member '{property.Name}' at {path}");
+                    RejectDuplicateMembers(property.Value, $"{path}.{property.Name}");
                 }
+                break;
             }
-
-            idx++;
+            case JsonValueKind.Array:
+            {
+                var index = 0;
+                foreach (var item in element.EnumerateArray())
+                    RejectDuplicateMembers(item, $"{path}[{index++}]");
+                break;
+            }
         }
     }
 
-    private static string JsonValueKindName(JsonValueKind kind) => kind switch
+    private static void CollectExplicitNullTypedMembers(JsonElement root, Models.AiCatalog catalog)
     {
-        JsonValueKind.Object => "object",
-        JsonValueKind.Array => "array",
-        JsonValueKind.String => "string",
-        JsonValueKind.Number => "number",
-        JsonValueKind.True => "boolean",
-        JsonValueKind.False => "boolean",
-        JsonValueKind.Null => "null",
-        JsonValueKind.Undefined => "undefined",
-        _ => kind.ToString().ToLowerInvariant()
-    };
+        RecordNullMembers(root, string.Empty, catalog, catalog,
+            "specVersion", "entries", "host", "signature", "extensions");
+        if (root.TryGetProperty("host", out var host) && host.ValueKind == JsonValueKind.Object)
+            RecordNullMembers(host, "host", catalog, catalog.Host!,
+                "displayName", "identifier", "documentationUrl", "logoUrl");
+        if (root.TryGetProperty("signature", out var signature) && signature.ValueKind == JsonValueKind.Object)
+            RecordNullMembers(signature, "signature", catalog, catalog.Signature!,
+                "signer", "profile", "issuedAt", "expiresAt", "jws");
 
-    [GeneratedRegex(@"^\d+\.\d+$")]
-    private static partial Regex MajorMinorPattern();
+        if (!root.TryGetProperty("entries", out var entries) || entries.ValueKind != JsonValueKind.Array)
+            return;
+
+        var index = 0;
+        foreach (var entry in entries.EnumerateArray())
+        {
+            var entryPath = $"entries[{index++}]";
+            if (entry.ValueKind != JsonValueKind.Object)
+                continue;
+
+            RecordNullMembers(entry, entryPath, catalog, catalog.Entries[index - 1],
+                "identifier", "displayName", "type", "digest",
+                "version", "description", "tags", "publisher", "trustManifests", "updatedAt", "extensions");
+            if (entry.TryGetProperty("publisher", out var publisher) && publisher.ValueKind == JsonValueKind.Object)
+                RecordNullMembers(publisher, $"{entryPath}.publisher", catalog, catalog.Entries[index - 1].Publisher!,
+                    "identifier", "displayName", "identityType");
+
+            if (!entry.TryGetProperty("trustManifests", out var manifests) ||
+                manifests.ValueKind != JsonValueKind.Array)
+                continue;
+
+            var manifestIndex = 0;
+            foreach (var manifest in manifests.EnumerateArray())
+            {
+                var manifestPath = $"{entryPath}.trustManifests[{manifestIndex++}]";
+                if (manifest.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                RecordNullMembers(manifest, manifestPath, catalog,
+                    catalog.Entries[index - 1].TrustManifests![manifestIndex - 1], "contributor", "subject", "signature",
+                    "trustSchema", "attestations", "provenance", "extensions");
+                if (manifest.TryGetProperty("subject", out var subject) && subject.ValueKind == JsonValueKind.Object)
+                    RecordNullMembers(subject, $"{manifestPath}.subject", catalog,
+                        catalog.Entries[index - 1].TrustManifests![manifestIndex - 1].Subject!,
+                        "identifier", "type", "digest", "version");
+                if (manifest.TryGetProperty("signature", out var manifestSignature) &&
+                    manifestSignature.ValueKind == JsonValueKind.Object)
+                    RecordNullMembers(manifestSignature, $"{manifestPath}.signature", catalog,
+                        catalog.Entries[index - 1].TrustManifests![manifestIndex - 1].Signature!,
+                        "signer", "profile", "issuedAt", "expiresAt", "jws");
+                if (manifest.TryGetProperty("trustSchema", out var trustSchema) &&
+                    trustSchema.ValueKind == JsonValueKind.Object)
+                    RecordNullMembers(trustSchema, $"{manifestPath}.trustSchema", catalog,
+                        catalog.Entries[index - 1].TrustManifests![manifestIndex - 1].TrustSchema!,
+                        "identifier", "version", "governanceUri", "verificationMethods");
+
+                CollectNullAttestationMembers(manifest, manifestPath, catalog,
+                    catalog.Entries[index - 1].TrustManifests![manifestIndex - 1]);
+                CollectNullProvenanceMembers(manifest, manifestPath, catalog,
+                    catalog.Entries[index - 1].TrustManifests![manifestIndex - 1]);
+            }
+        }
+    }
+
+    private static void CollectNullAttestationMembers(JsonElement manifest, string manifestPath,
+        Models.AiCatalog catalog, TrustManifest parsedManifest)
+    {
+        if (!manifest.TryGetProperty("attestations", out var attestations) ||
+            attestations.ValueKind != JsonValueKind.Array)
+            return;
+
+        var index = 0;
+        foreach (var attestation in attestations.EnumerateArray())
+        {
+            if (attestation.ValueKind == JsonValueKind.Object)
+                RecordNullMembers(attestation, $"{manifestPath}.attestations[{index}]", catalog,
+                    parsedManifest.Attestations![index],
+                    "type", "uri", "digest", "size", "description");
+            index++;
+        }
+    }
+
+    private static void CollectNullProvenanceMembers(JsonElement manifest, string manifestPath,
+        Models.AiCatalog catalog, TrustManifest parsedManifest)
+    {
+        if (!manifest.TryGetProperty("provenance", out var provenance) ||
+            provenance.ValueKind != JsonValueKind.Array)
+            return;
+
+        var index = 0;
+        foreach (var link in provenance.EnumerateArray())
+        {
+            if (link.ValueKind == JsonValueKind.Object)
+                RecordNullMembers(link, $"{manifestPath}.provenance[{index}]", catalog,
+                    parsedManifest.Provenance![index],
+                    "relation", "sourceId", "sourceDigest", "registryUri", "statementUri", "signatureRef");
+            index++;
+        }
+    }
+
+    private static void RecordNullMembers(JsonElement obj, string path, Models.AiCatalog catalog, object parsedObject,
+        params string[] typedMembers)
+    {
+        var names = new HashSet<string>(typedMembers, StringComparer.Ordinal);
+        foreach (var property in obj.EnumerateObject())
+        {
+            if (property.Value.ValueKind == JsonValueKind.Null && names.Contains(property.Name))
+            {
+                var memberPath = path.Length == 0 ? property.Name : $"{path}.{property.Name}";
+                ExplicitNullMemberTracker.Mark(parsedObject, property.Name);
+                catalog.ExplicitNullTypedMemberParents[memberPath] = (parsedObject, property.Name);
+            }
+        }
+    }
 }

@@ -99,7 +99,7 @@ public class SerializationTests
     {
         var catalog = new Models.AiCatalog
         {
-            SpecVersion = "1.0",
+            SpecVersion = "0.9",
             Entries = []
         };
 
@@ -118,7 +118,7 @@ public class SerializationTests
     {
         var catalog = new Models.AiCatalog
         {
-            SpecVersion = "1.0",
+            SpecVersion = "0.9",
             Entries = [new Models.CatalogEntry
             {
                 Identifier = "urn:test:entry",
@@ -141,7 +141,7 @@ public class SerializationTests
     {
         var catalog = new Models.AiCatalog
         {
-            SpecVersion = "1.0",
+            SpecVersion = "0.9",
             Entries = [new Models.CatalogEntry
             {
                 Identifier = "urn:test:entry",
@@ -156,7 +156,7 @@ public class SerializationTests
         stream.Position = 0;
         var reparsed = AiCatalogParser.Parse(stream);
 
-        Assert.Equal("1.0", reparsed.SpecVersion);
+        Assert.Equal("0.9", reparsed.SpecVersion);
         Assert.Single(reparsed.Entries);
     }
 }

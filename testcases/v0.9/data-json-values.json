@@ -1,0 +1,50 @@
+{
+  "description": "Entry data accepts arbitrary JSON values, including object, string, number, array, boolean, and null.",
+  "spec_section": "AI Catalog § Catalog Entry — data",
+  "spec_revision": {
+    "url": "https://github.com/Agent-Card/ai-card/blob/19208af2f8adbc0a6457e3ff36ce691a304fbd97/specification/ai-catalog.md",
+    "commit": "19208af2f8adbc0a6457e3ff36ce691a304fbd97"
+  },
+  "test_ids": ["V09-CE-P02"],
+  "input": {
+    "specVersion": "0.9",
+    "entries": [
+      {
+        "identifier": "urn:air:contoso.com:data:object",
+        "type": "application/json",
+        "data": {"name": "object"}
+      },
+      {
+        "identifier": "urn:air:contoso.com:data:string",
+        "type": "application/json",
+        "data": "inline text"
+      },
+      {
+        "identifier": "urn:air:contoso.com:data:number",
+        "type": "application/json",
+        "data": 42
+      },
+      {
+        "identifier": "urn:air:contoso.com:data:array",
+        "type": "application/json",
+        "data": ["one", 2, false]
+      },
+      {
+        "identifier": "urn:air:contoso.com:data:boolean",
+        "type": "application/json",
+        "data": true
+      },
+      {
+        "identifier": "urn:air:contoso.com:data:null",
+        "type": "application/json",
+        "data": null
+      }
+    ]
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 6,
+    "data_json_kinds": ["object", "string", "number", "array", "boolean", "null"],
+    "data_values_preserved": true
+  }
+}

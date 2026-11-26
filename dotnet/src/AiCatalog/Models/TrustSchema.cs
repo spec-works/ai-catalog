@@ -19,12 +19,30 @@ public sealed class TrustSchema
     /// <summary>Optional URI to the governance document.</summary>
     [JsonPropertyName("governanceUri")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? GovernanceUri { get; set; }
+    public string? GovernanceUri
+    {
+        get => _governanceUri;
+        set
+        {
+            ExplicitNullMemberTracker.Clear(this, "governanceUri");
+            _governanceUri = value;
+        }
+    }
+    private string? _governanceUri;
 
     /// <summary>Optional list of verification methods (e.g., "did", "x509", "dns-01").</summary>
     [JsonPropertyName("verificationMethods")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<string>? VerificationMethods { get; set; }
+    public List<string>? VerificationMethods
+    {
+        get => _verificationMethods;
+        set
+        {
+            ExplicitNullMemberTracker.Clear(this, "verificationMethods");
+            _verificationMethods = value;
+        }
+    }
+    private List<string>? _verificationMethods;
 
     /// <summary>Unknown properties at the object level, preserved for round-trip fidelity.</summary>
     [JsonExtensionData]

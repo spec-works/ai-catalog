@@ -219,8 +219,9 @@ public static class ExploreCommand
         }
     }
 
-    private static string Truncate(string value, int maxLength)
+    private static string Truncate(string? value, int maxLength)
     {
+        value ??= string.Empty;
         return value.Length <= maxLength ? value : string.Concat(value.AsSpan(0, maxLength - 3), "...");
     }
 }

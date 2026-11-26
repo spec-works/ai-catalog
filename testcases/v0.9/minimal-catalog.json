@@ -1,0 +1,18 @@
+{
+  "description": "Minimal v0.9 Level 1 catalog with the required top-level members and no entries.",
+  "spec_section": "AI Catalog § Top-Level Structure; § Conformance Levels — Level 1: Minimal Catalog",
+  "spec_revision": {
+    "url": "https://github.com/Agent-Card/ai-card/blob/19208af2f8adbc0a6457e3ff36ce691a304fbd97/specification/ai-catalog.md",
+    "commit": "19208af2f8adbc0a6457e3ff36ce691a304fbd97"
+  },
+  "test_ids": ["V09-TL-P01"],
+  "input": {
+    "specVersion": "0.9",
+    "entries": []
+  },
+  "expected": {
+    "valid": true,
+    "entry_count": 0,
+    "conformance_level": "level_1_minimal"
+  }
+}

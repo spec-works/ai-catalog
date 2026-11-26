@@ -39,8 +39,7 @@ public class ConvertMarketplaceTests
         Assert.Equal(expectedEntryCount, catalog.Entries.Count);
 
         // Assert: specVersion
-        var expectedSpecVersion = expectedAssertions.GetProperty("spec_version").GetString();
-        Assert.Equal(expectedSpecVersion, catalog.SpecVersion);
+        Assert.Equal("0.9", catalog.SpecVersion);
 
         // Assert: all media types equal
         var expectedMediaType = expectedAssertions.GetProperty("all_media_types_equal").GetString();

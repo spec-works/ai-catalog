@@ -1,5 +1,6 @@
 using System.Text.Json;
 using SpecWorks.AiCatalog.Parsing;
+using SpecWorks.AiCatalog.Validation;
 using Xunit;
 
 namespace SpecWorks.AiCatalog.Tests;
@@ -74,86 +75,121 @@ public class ParsingTests
     [Fact]
     public void Parse_EmptyEntriesArray_Succeeds()
     {
-        var json = """{"specVersion":"1.0","entries":[]}""";
+        var json = """{"specVersion":"0.9","entries":[]}""";
         var catalog = AiCatalogParser.Parse(json);
         Assert.NotNull(catalog);
-        Assert.Equal("1.0", catalog.SpecVersion);
+        Assert.Equal("0.9", catalog.SpecVersion);
         Assert.Empty(catalog.Entries);
     }
 
     [Fact]
     public void Parse_Stream_Succeeds()
     {
-        var json = """{"specVersion":"1.0","entries":[]}""";
+        var json = """{"specVersion":"0.9","entries":[]}""";
         using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
         var catalog = AiCatalogParser.Parse(stream);
         Assert.NotNull(catalog);
-        Assert.Equal("1.0", catalog.SpecVersion);
+        Assert.Equal("0.9", catalog.SpecVersion);
     }
 
     [Fact]
     public void Parse_SpecVersion_HigherMinor_Accepted()
     {
-        // VH-5: Accept documents whose major version matches, regardless of minor
-        var json = """{"specVersion":"1.99","entries":[]}""";
+        var json = """{"specVersion":"0.99","entries":[]}""";
         var catalog = AiCatalogParser.Parse(json);
-        Assert.Equal("1.99", catalog.SpecVersion);
+        var result = AiCatalogValidator.Validate(catalog);
+        Assert.Equal("0.99", catalog.SpecVersion);
+        Assert.DoesNotContain(result.Errors, error => error.Path == "specVersion");
     }
 
     [Fact]
-    public void Parse_SpecVersion_UnsupportedMajor_Rejected()
+    public void Parse_SpecVersion_V1IsNotAnAliasForV09()
     {
-        // VH-6: Reject documents whose major version is higher with informative error
-        var json = """{"specVersion":"2.0","entries":[]}""";
-        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
-        Assert.Contains("unsupported major version", ex.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("2", ex.Message);
+        var json = """{"specVersion":"1.0","entries":[]}""";
+        var catalog = AiCatalogParser.Parse(json);
+        var result = AiCatalogValidator.Validate(catalog);
+        Assert.Contains(result.Errors, error => error.Path == "specVersion" &&
+            error.Message.Contains("unsupported major version", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
-    public void Parse_SpecVersion_NoMinor_Rejected()
+    public void Parse_SpecVersion_LowerMinorWithSupportedMajor_IsAccepted()
+    {
+        var catalog = AiCatalogParser.Parse("""{"specVersion":"0.1","entries":[]}""");
+        var result = AiCatalogValidator.Validate(catalog);
+        Assert.DoesNotContain(result.Errors, error => error.Path == "specVersion");
+    }
+
+    [Fact]
+    public void Parse_SpecVersion_NoMinor_IsReportedByStructuralValidation()
     {
         // VH-N02: No minor component
         var json = """{"specVersion":"1","entries":[]}""";
-        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
-        Assert.Contains("Major.Minor", ex.Message);
+        var catalog = AiCatalogParser.Parse(json);
+        var result = AiCatalogValidator.Validate(catalog);
+        Assert.Contains(result.Errors, error => error.Path == "specVersion" &&
+            error.Message.Contains("Major.Minor", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void Parse_SpecVersion_ExtraSegment_Rejected()
+    public void Parse_SpecVersion_ExtraSegment_IsReportedByStructuralValidation()
     {
         // VH-N03: Three segments
         var json = """{"specVersion":"1.0.0","entries":[]}""";
-        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
-        Assert.Contains("Major.Minor", ex.Message);
+        var catalog = AiCatalogParser.Parse(json);
+        var result = AiCatalogValidator.Validate(catalog);
+        Assert.Contains(result.Errors, error => error.Path == "specVersion" &&
+            error.Message.Contains("Major.Minor", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void Parse_SpecVersion_NegativeNumber_Rejected()
+    public void Parse_SpecVersion_NegativeNumber_IsReportedByStructuralValidation()
     {
         // VH-N04: Negative
         var json = """{"specVersion":"-1.0","entries":[]}""";
-        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
-        Assert.Contains("non-negative integers", ex.Message);
+        var catalog = AiCatalogParser.Parse(json);
+        var result = AiCatalogValidator.Validate(catalog);
+        Assert.Contains(result.Errors, error => error.Path == "specVersion" &&
+            error.Message.Contains("Major.Minor", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void Parse_SpecVersion_NonInteger_Rejected()
+    public void Parse_SpecVersion_NonInteger_IsReportedByStructuralValidation()
     {
         // VH-N05: Non-integer components
         var json = """{"specVersion":"a.b","entries":[]}""";
-        var ex = Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
-        Assert.Contains("non-negative integers", ex.Message);
+        var catalog = AiCatalogParser.Parse(json);
+        var result = AiCatalogValidator.Validate(catalog);
+        Assert.Contains(result.Errors, error => error.Path == "specVersion" &&
+            error.Message.Contains("Major.Minor", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Parse_MissingRequiredMembers_IsReportedByStructuralValidation()
+    {
+        var catalog = AiCatalogParser.Parse("{}");
+        var result = AiCatalogValidator.Validate(catalog);
+        Assert.Contains(result.Errors, error => error.Path == "specVersion");
+        Assert.Contains(result.Errors, error => error.Path == "entries");
     }
 
     [Fact]
     public void Parse_UnknownFields_SilentlyIgnored()
     {
         // VH-2: Unknown fields within same major version are silently ignored
-        var json = """{"specVersion":"1.0","entries":[],"x-custom":"value","futureField":42}""";
+        var json = """{"specVersion":"0.9","entries":[],"x-custom":"value","futureField":42}""";
         var catalog = AiCatalogParser.Parse(json);
         Assert.NotNull(catalog);
-        Assert.Equal("1.0", catalog.SpecVersion);
+        Assert.Equal("0.9", catalog.SpecVersion);
+    }
+
+    [Theory]
+    [InlineData("""{"specVersion":"0.9","specVersion":"0.9","entries":[]}""")]
+    [InlineData("""{"specVersion":"0.9","entries":[{"identifier":"urn:test:x","type":"application/json","data":{"name":1,"\u006eame":2}}]}""")]
+    [InlineData("""{"specVersion":"0.9","entries":[],"unknown":[{"nested":{"name":1,"name":2}}]}""")]
+    public void Parse_DuplicateJsonMembersAtAnyDepth_Throws(string json)
+    {
+        Assert.Throws<AiCatalogParseException>(() => AiCatalogParser.Parse(json));
     }
 
     private static void VerifyHostExpectations(JsonElement hostExpected, Models.HostInfo host)

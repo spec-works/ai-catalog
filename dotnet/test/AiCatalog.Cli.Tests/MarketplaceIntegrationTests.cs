@@ -43,7 +43,7 @@ public class MarketplaceIntegrationTests
         var json = File.ReadAllText(SpecWorksFixturePath);
         var catalog = MarketplaceConverter.Convert(json);
 
-        Assert.Equal("1.0", catalog.SpecVersion);
+        Assert.Equal("0.9", catalog.SpecVersion);
     }
 
     [Fact]
